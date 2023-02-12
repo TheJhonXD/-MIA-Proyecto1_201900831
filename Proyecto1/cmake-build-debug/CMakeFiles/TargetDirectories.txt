@@ -1,0 +1,3 @@
+/home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/cmake-build-debug/CMakeFiles/Proyecto1.dir
+/home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/cmake-build-debug/CMakeFiles/rebuild_cache.dir
