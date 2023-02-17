@@ -61,6 +61,24 @@ build CMakeFiles/Proyecto1.dir/Tools.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/
   OBJECT_DIR = CMakeFiles/Proyecto1.dir
   OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
 
+build CMakeFiles/Proyecto1.dir/Commands.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/Commands.cpp || cmake_object_order_depends_target_Proyecto1
+  DEP_FILE = CMakeFiles/Proyecto1.dir/Commands.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/Proyecto1.dir
+  OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
+
+build CMakeFiles/Proyecto1.dir/Disks.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/Disks.cpp || cmake_object_order_depends_target_Proyecto1
+  DEP_FILE = CMakeFiles/Proyecto1.dir/Disks.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/Proyecto1.dir
+  OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
+
+build CMakeFiles/Proyecto1.dir/Structs.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/Structs.cpp || cmake_object_order_depends_target_Proyecto1
+  DEP_FILE = CMakeFiles/Proyecto1.dir/Structs.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/Proyecto1.dir
+  OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Proyecto1
@@ -69,7 +87,7 @@ build CMakeFiles/Proyecto1.dir/Tools.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/
 #############################################
 # Link the executable Proyecto1
 
-build Proyecto1: CXX_EXECUTABLE_LINKER__Proyecto1_Debug CMakeFiles/Proyecto1.dir/main.cpp.o CMakeFiles/Proyecto1.dir/Tools.cpp.o
+build Proyecto1: CXX_EXECUTABLE_LINKER__Proyecto1_Debug CMakeFiles/Proyecto1.dir/main.cpp.o CMakeFiles/Proyecto1.dir/Tools.cpp.o CMakeFiles/Proyecto1.dir/Commands.cpp.o CMakeFiles/Proyecto1.dir/Disks.cpp.o CMakeFiles/Proyecto1.dir/Structs.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/Proyecto1.dir
   POST_BUILD = :

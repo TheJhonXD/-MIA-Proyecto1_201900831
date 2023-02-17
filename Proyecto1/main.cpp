@@ -1,10 +1,11 @@
 #include <iostream>
 #include <filesystem>
 #include <fstream>
+#include <time.h>
+#include <stdlib.h>
 #include "Tools.h"
-#include <sys/stat.h>
+#include "Commands.h"
 #include <sys/types.h>
-#include <bits/stdc++.h>
 
 using namespace std;
 namespace fs = filesystem;
@@ -28,10 +29,13 @@ void analyzer(string s) {
 
     if (toLowerCase(cmds[0]) == "mkdisk"){
         cout<< "»» " << s <<endl;
+        MKDISK(cmds);
     }else if (toLowerCase(cmds[0]) == "rmdisk"){
         cout<< "»» " << s <<endl;
+        RMDISK(cmds);
     }else if (toLowerCase(cmds[0]) == "fdisk"){
         cout<< "»» " << s <<endl;
+        FDISK(cmds);
     }else if (toLowerCase(cmds[0]) == "mount"){
         cout<< "»» " << s <<endl;
     }else if (toLowerCase(cmds[0]) == "unmount"){
