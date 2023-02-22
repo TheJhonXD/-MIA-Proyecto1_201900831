@@ -157,8 +157,9 @@ void MKDISK(vector<string> params) {
             MBR m = {PDM.s, getTime(), getRandomNumber(), *PDM.f.c_str(), RPV(), RPV(), RPV(), RPV()};
             addMBR(PDM.path, m); //Añado el MBR al disco creado
         }
-        resetPDM(); //Reseto la estructura
+        //resetPDM(); //Reseto la estructura
     }
+    resetPDM(); //Reseteo la estructura
 }
 
 //Analiza y realiza las funciones que debe realizar el comando rmdisk
@@ -181,8 +182,9 @@ void RMDISK(vector<string> params) {
         //Elimino el disco
         deleteDisk(PDM.path);
         //Reseteo la estructura
-        resetPDM();
+        //resetPDM(); //Reseteo la estructura
     }
+    resetPDM(); //Reseteo la estructura
 }
 
 //Analiza y realiza las funciones que debe realizar el comando fdisk
@@ -216,15 +218,23 @@ void FDISK(vector<string> params) {
     //Parametros para crear una particion
     if (check_param_s(PDM.s) && check_param_path(PDM.path) && check_param_u(PDM.u)
         && check_param_name(PDM.name) && check_param_t(PDM.t)) {
-        createPart(PDM.path, PDM.name, *PDM.t.c_str(), PDM.s);
+        //Creo una variable particion para guardar los datos, excepto el inicio de partcion y el estado
+        Partition p = {-1, *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s, *PDM.name.c_str()};
+        createPart(PDM.path, p); //Creo la particion y compruebo que todo ha salido correctamente
     }
         //Parametros para eliminar una particion
     else if (check_param_delete(PDM.del) && check_param_path(PDM.path) && check_param_name(PDM.name)){
-        //!Proceso
+        deletePart(PDM.path, PDM.name);
     }
         //Parametros para añadir o reducir volumen de una particion
     else if (check_param_add(PDM.add) && check_param_u(PDM.u) && check_param_path(PDM.path) && check_param_name(PDM.name)){
-        //!Proceso
+        (PDM.u == "k") ? PDM.add *= 1024 : PDM.add *= 1024*1024;
+        if (PDM.add > 0){
+            //?Codigo para añadir volumen
+            
+        }else if (PDM.add < 0){
+            //!Codigo para reducir volumen
+        }
     }else{
         cout<< "ERROR: No se pudo realizar la accion" <<endl;
     }

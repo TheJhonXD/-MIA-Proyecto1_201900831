@@ -6,6 +6,7 @@
 
 bool createDisk(string path, int tam);
 bool deleteDisk(string path);
-bool createPart(string path, string name, char type, int tam);
+bool createPart(string path, Partition &p);
+bool deletePart(const string path, const string name);
 
 #endif //PROYECTO1_DISKS_H

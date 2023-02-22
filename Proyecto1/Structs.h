@@ -10,6 +10,7 @@ struct SpaceSize{
     int part_start;
     int part_s;
     char in_use;
+    char type;
 };
 
 struct Time{
@@ -53,8 +54,11 @@ struct EBR{
 //FUNCIONES
 Time getTime();
 Partition RPV();
+EBR REBRV();
 void addMBR(const string path, MBR m);
 MBR getMBR(const string path);
 void readMBR(const string path);
+void addEBR(const string path, int start, EBR e);
+EBR getEBR(const string path, int start);
 
 #endif //PROYECTO1_STRUCTS_H

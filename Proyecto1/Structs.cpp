@@ -20,6 +20,12 @@ Partition RPV() {
     return {-1, -1, -1, -1, -1, "-1"};
 }
 
+//Reset EBR Variable
+//Limpia la variable EBR o inicializa en 0
+EBR REBRV() {
+    return {-1, -1, -1, -1, -1, "-1"};
+}
+
 //Añade el MBR a un disco especificado
 //Recibe la ruta del disco y el MBR
 void addMBR(const string path, MBR m) {
@@ -34,6 +40,8 @@ void addMBR(const string path, MBR m) {
     }
 }
 
+//Retorna el MBR del disco especificado
+//Recibe la ruta dle disco
 MBR getMBR(const string path) {
     MBR m;
     try {
@@ -48,6 +56,7 @@ MBR getMBR(const string path) {
     return m;
 }
 
+//Lee el MBR del disco especificado
 void readMBR(const string path) {
     try {
         FILE *myfile;
@@ -60,6 +69,35 @@ void readMBR(const string path) {
         cout<< "Hora: " << m.mbr_fecha_creacion.tm_hour << " : " << m.mbr_fecha_creacion.tm_min << " : " << m.mbr_fecha_creacion.tm_sec <<endl;
         cout<< "ID: " << m.mbr_dsk_signature <<endl;
         cout<< "Type: " << m.dsk_fit <<endl;
+        fclose(myfile);
+    } catch(const exception &e) {
+        cerr << e.what() <<endl;
+    }
+}
+
+//Añade el EBR a una particion extendida
+//Recibe la ruta del disco y el EBR
+void addEBR(const string path, int start, EBR e){
+    try {
+        FILE *myfile;
+        myfile = fopen(path.c_str(), "rb");
+        fseek(myfile, start, SEEK_SET);
+        fwrite(&e, sizeof(EBR), 1, myfile);
+        fclose(myfile);
+    } catch(const exception &e) {
+        cerr << e.what() <<endl;
+    }
+}
+
+//Retorna el EBR de la particion extendida en la posicion indicada
+//Recibe la ruta dle disco y el inicio del EBR
+EBR getEBR(const string path, int start){
+    EBR e;
+    try {
+        FILE *myfile;
+        myfile = fopen(path.c_str(), "rb");
+        fseek(myfile, start, SEEK_SET);
+        fread(&e, sizeof(EBR), 1, myfile);
         fclose(myfile);
     } catch(const exception &e) {
         cerr << e.what() <<endl;
