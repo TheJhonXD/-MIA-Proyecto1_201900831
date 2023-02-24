@@ -79,6 +79,12 @@ build CMakeFiles/Proyecto1.dir/Structs.cpp.o: CXX_COMPILER__Proyecto1_Debug /hom
   OBJECT_DIR = CMakeFiles/Proyecto1.dir
   OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
 
+build CMakeFiles/Proyecto1.dir/Graphviz.cpp.o: CXX_COMPILER__Proyecto1_Debug /home/jhonx/Escritorio/Carpetas/MIA1S2023/Lab/-MIA-Proyecto1_201900831/Proyecto1/Graphviz.cpp || cmake_object_order_depends_target_Proyecto1
+  DEP_FILE = CMakeFiles/Proyecto1.dir/Graphviz.cpp.o.d
+  FLAGS = -g -fdiagnostics-color=always
+  OBJECT_DIR = CMakeFiles/Proyecto1.dir
+  OBJECT_FILE_DIR = CMakeFiles/Proyecto1.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Proyecto1
@@ -87,7 +93,7 @@ build CMakeFiles/Proyecto1.dir/Structs.cpp.o: CXX_COMPILER__Proyecto1_Debug /hom
 #############################################
 # Link the executable Proyecto1
 
-build Proyecto1: CXX_EXECUTABLE_LINKER__Proyecto1_Debug CMakeFiles/Proyecto1.dir/main.cpp.o CMakeFiles/Proyecto1.dir/Tools.cpp.o CMakeFiles/Proyecto1.dir/Commands.cpp.o CMakeFiles/Proyecto1.dir/Disks.cpp.o CMakeFiles/Proyecto1.dir/Structs.cpp.o
+build Proyecto1: CXX_EXECUTABLE_LINKER__Proyecto1_Debug CMakeFiles/Proyecto1.dir/main.cpp.o CMakeFiles/Proyecto1.dir/Tools.cpp.o CMakeFiles/Proyecto1.dir/Commands.cpp.o CMakeFiles/Proyecto1.dir/Disks.cpp.o CMakeFiles/Proyecto1.dir/Structs.cpp.o CMakeFiles/Proyecto1.dir/Graphviz.cpp.o
   FLAGS = -g
   OBJECT_DIR = CMakeFiles/Proyecto1.dir
   POST_BUILD = :

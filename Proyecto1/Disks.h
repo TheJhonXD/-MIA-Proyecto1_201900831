@@ -4,9 +4,17 @@
 #include "Tools.h"
 #include "Structs.h"
 
+//vector<MountedDisk> mds;
+
 bool createDisk(string path, int tam);
 bool deleteDisk(string path);
+vector<SpaceSize> BlockSize(const string path, MBR m);
+vector<SpaceSize> ExtBlockSize(const string path);
 bool createPart(string path, Partition &p);
 bool deletePart(const string path, const string name);
+bool addVolToPart(const string path, const string name, int tam);
+bool reducePartSize(const string path, const string name, int tam);
+bool mountDisk(const string path, const string name);
+bool unmountDisk(const string id);
 
 #endif //PROYECTO1_DISKS_H

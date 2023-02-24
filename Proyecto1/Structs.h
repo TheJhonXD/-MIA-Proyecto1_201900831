@@ -13,6 +13,12 @@ struct SpaceSize{
     char type;
 };
 
+struct MountedDisk{
+    string path;
+    string name;
+    string id;
+};
+
 struct Time{
     int tm_sec;   // seconds of minutes from 0 to 61
     int tm_min;   // minutes of hour from 0 to 59
@@ -60,5 +66,6 @@ MBR getMBR(const string path);
 void readMBR(const string path);
 void addEBR(const string path, int start, EBR e);
 EBR getEBR(const string path, int start);
+EBR getEBRByName(const string path, Partition ep, const string &name);
 
 #endif //PROYECTO1_STRUCTS_H

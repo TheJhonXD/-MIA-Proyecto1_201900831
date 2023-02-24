@@ -9,12 +9,13 @@ struct {
     string del = "-1"; //delete
     string name = "-1";
     int add = 0;
+    string id = "-1";
 } PDM; //disk managment parameters
 
 //Reseteo la estructura PDM
 void resetPDM(){
     PDM.s = -1; PDM.f = "-1"; PDM.u = "-1"; PDM.path = "-1"; PDM.t = "-1";
-    PDM.del = "-1"; PDM.name = "-1"; PDM.add = 0;
+    PDM.del = "-1"; PDM.name = "-1"; PDM.add = 0; PDM.id = "-1";
 }
 
 //Comprueba valores validos para el parametro -s
@@ -122,10 +123,26 @@ bool check_param_name(string &name) {
     return (name != "-1") ? true : false;
 }
 
+//Comprueba valores validos para el parametro -name de los reportes
+bool check_param_name_rep(string &name){
+    if (name == "mbr" || name == "disk" || name == "inode" || name == "journaling"
+    || name == "block" || name == "bm_inode" || name == "bm_block" || name == "tree"
+    || name == "sb" || name == "file" || name == "ls"){
+        return true;
+    }else{
+        cout<< "ERROR: El nombre del reporte no es valido" <<endl;
+    }
+    return false;
+}
+
 //Comprueba valores validos para el parametro -add
 //Parametro opcional
 bool check_param_add(int &add) {
     return (add > 0 || add < 0) ? true : false;
+}
+
+bool check_param_id(string &id){
+    return (id != "-1") ? true : false;
 }
 
 //Analiza y realiza las funciones que debe realizar mkdisk
@@ -211,6 +228,8 @@ void FDISK(vector<string> params) {
             PDM.name = param[1];
         }else if (toLowerCase(param[0]) == ">add"){
             PDM.add = stoi(param[1]);
+        }else{
+            cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
         }
     }
 
@@ -230,13 +249,77 @@ void FDISK(vector<string> params) {
     else if (check_param_add(PDM.add) && check_param_u(PDM.u) && check_param_path(PDM.path) && check_param_name(PDM.name)){
         (PDM.u == "k") ? PDM.add *= 1024 : PDM.add *= 1024*1024;
         if (PDM.add > 0){
-            //?Codigo para añadir volumen
-            
+            addVolToPart(PDM.path, PDM.name, PDM.add);
         }else if (PDM.add < 0){
-            //!Codigo para reducir volumen
+            reducePartSize(PDM.path, PDM.name, PDM.add);
         }
     }else{
         cout<< "ERROR: No se pudo realizar la accion" <<endl;
     }
+    resetPDM();
+}
 
+void MOUNT(vector<string> params){
+    vector<string> param;
+    for (size_t i=1; i<params.size(); i++){
+        //Separo el parametro de su valor
+        param = split(params[i], "=");
+        /* Guardo los valores obtenidos en la estructura */
+        if (toLowerCase(param[0]) == ">name"){
+            PDM.name = param[1];
+        }else if (toLowerCase(param[0]) == ">path"){
+            PDM.path = removeQuotes(param[1]);
+        }else{
+            cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
+        }
+    }
+    //Compruebo si son valores validos
+    if (check_param_path(PDM.path) && check_param_name(PDM.name)){
+        mountDisk(PDM.path, PDM.name);
+    }
+    resetPDM();
+}
+
+void UNMOUNT(vector<string> params){
+    vector<string> param;
+    for (size_t i=1; i<params.size(); i++){
+        //Separo el parametro de su valor
+        param = split(params[i], "=");
+        /* Guardo los valores obtenidos en la estructura */
+        if (toLowerCase(param[0]) == ">id"){
+            PDM.id = param[1];
+        }else{
+            cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
+        }
+    }
+
+    if (check_param_id(PDM.id)){
+        unmountDisk(PDM.id);
+    }
+    resetPDM();
+}
+
+void REP(vector<string> params){
+    vector<string> param;
+    for (size_t i=1; i<params.size(); i++){
+        //Separo el parametro de su valor
+        param = split(params[i], "=");
+        /* Guardo los valores obtenidos en la estructura */
+        if (toLowerCase(param[0]) == ">name"){
+            PDM.name = toLowerCase(param[1]);
+        }else if (toLowerCase(param[0]) == ">path"){
+            PDM.path = removeQuotes(param[1]);
+        }else if (toLowerCase(param[0]) == ">id"){
+            PDM.t = toLowerCase(param[1]);
+        }else if (toLowerCase(param[0]) == ">ruta"){
+            //PDM.f = toLowerCase(param[1]);
+            //!Realizar comprobación de ruta y id
+        }else{
+            cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
+        }
+    }
+    //?Solo prueba
+    if (check_param_name_rep(PDM.name) && check_param_path(PDM.path)){
+        getDiskGraph(PDM.path);
+    }
 }

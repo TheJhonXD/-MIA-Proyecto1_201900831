@@ -1,0 +1,24 @@
+digraph {
+    node [ shape=none fontname=Arial ]
+
+    n4 [ label = <
+        <table border="" color="dodgerblue3">
+            <tr>
+                <td colspan="2" rowspan="12">MBR<br/><font point-size="8">XD</font></td>
+                <td colspan="2" rowspan="12">Libre</td>
+                <td colspan="5">Extendida</td>
+                <td colspan="2" rowspan="12">Primaria</td>
+                <td colspan="2" rowspan="12">Libre</td>
+            </tr>
+            <tr>
+                <td rowspan="11">EBR</td>
+                <td rowspan="11">Logica</td>
+                <td rowspan="11">Libre</td>
+                <td rowspan="11">EBR</td>
+                <td rowspan="11">Logica</td>
+            </tr>
+        </table>
+    > ];
+
+    {rank=same n4};
+}

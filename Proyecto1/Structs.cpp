@@ -102,4 +102,20 @@ EBR getEBR(const string path, int start){
     } catch(const exception &e) {
         cerr << e.what() <<endl;
     }
+    return e;
+}
+
+EBR getEBRByName(const string path, Partition ep, const string &name){
+    EBR start = getEBR(path, ep.part_start);
+    if (start.part_next != -1){
+        EBR actual = getEBR(path, start.part_next);
+        while (actual.part_next != -1){
+            if (actual.part_name == name){
+                return actual;
+            }
+            actual = getEBR(path, actual.part_next);
+        }
+        if (actual.part_name == name) return actual;
+    }
+    return {}; //!aqui
 }

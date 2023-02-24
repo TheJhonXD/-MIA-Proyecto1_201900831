@@ -1,5 +1,7 @@
 #include "Disks.h"
 
+vector<MountedDisk> mds;
+
 //Crea un archivo que simula un disco en la ruta y tamaño especificados
 bool createDisk(string path, int tam){
     //Compruebo si no existe el archivo
@@ -43,6 +45,21 @@ bool deleteDisk(string path){
         cout<< "El disco \"" << getFileName(path) << "\" no existe" << endl;
     }
     return false;
+}
+
+//Retorna la particion extendida del disco
+Partition getExtPart(const string &path){
+    MBR m = getMBR(path);
+    if (m.mbr_partition_1.part_type == 'e'){
+        return m.mbr_partition_1;
+    }else if (m.mbr_partition_2.part_type == 'e'){
+        return m.mbr_partition_2;
+    }else if (m.mbr_partition_3.part_type == 'e'){
+        return m.mbr_partition_3;
+    }else if (m.mbr_partition_4.part_type == 'e'){
+        return m.mbr_partition_4;
+    }
+    return {};
 }
 
 //Comprueba si una particion dada es primaria
@@ -89,21 +106,6 @@ bool isLogPart(const string path, const string &name){
     return false;
 }
 
-//Retorna la particion extendida del disco
-Partition getExtPart(const string &path){
-    MBR m = getMBR(path);
-    if (m.mbr_partition_1.part_type == 'e'){
-        return m.mbr_partition_1;
-    }else if (m.mbr_partition_2.part_type == 'e'){
-        return m.mbr_partition_2;
-    }else if (m.mbr_partition_3.part_type == 'e'){
-        return m.mbr_partition_3;
-    }else if (m.mbr_partition_4.part_type == 'e'){
-        return m.mbr_partition_4;
-    }
-    return {};
-}
-
 Partition getPartByName(const string path, const string name){
     MBR m = getMBR(path);
     if (m.mbr_partition_1.part_name == name){
@@ -115,21 +117,7 @@ Partition getPartByName(const string path, const string name){
     }else if (m.mbr_partition_4.part_name == name){
         return m.mbr_partition_4;
     }
-}
-
-EBR getExtPartByName(const string path, const string name){
-    Partition ep = getExtPart(path);
-    EBR start = getEBR(path, ep.part_start);
-    if (start.part_next != -1){
-        EBR actual = getEBR(path, start.part_next);
-        while (actual.part_next != -1){
-            if (actual.part_name == name){
-                return actual;
-            }
-            actual = getEBR(path, actual.part_next);
-        }
-        if (actual.part_name == name) return actual;
-    }
+    return {}; //!aqui
 }
 
 //Comprueba si existe una particion
@@ -492,7 +480,7 @@ bool extBestFit(const string path, EBR &e){
 //Asigna la particion en la memoria a bloques según el algoritmo de peor ajuste para la particion extendida
 //Recibe la ruta del disco y la particion
 bool extWorstFit(const string path, EBR &e){
-    MBR m = getMBR(path); //Obtengo el mbr del disco
+    // MBR m = getMBR(path); //Obtengo el mbr del disco
     vector<SpaceSize> ss = ExtBlockSize(path); //Obtengo el bloque de tamaños
     int worstFitIdx = -1;
     int prevSpace = -1;
@@ -596,7 +584,8 @@ bool fillSpaceDeleted(const string path, int start, int end){
         myfile = fopen(path.c_str(), "rb+");
         fseek(myfile, start, SEEK_SET);
         char c = '\0';
-        for(int i = 0; i < (end - start); i++){
+        //*Si falla comprobar (end - start)
+        for(int i = 0; i < end; i++){
             fwrite(&c, sizeof(c), 1, myfile);
         }
         return true;
@@ -710,16 +699,229 @@ bool deletePart(const string path, const string name){
     }else{
         cout<< "ERROR: El disco \"" << getFileName(path) << "\" no existe" <<endl;
     }
+    return false;
+}
+
+int availSpacePart(MBR m, const string &name){
+    int availSpace = -1;
+
+    if (m.mbr_partition_1.part_name == name){
+        availSpace = m.mbr_partition_2.part_start - (m.mbr_partition_1.part_start + m.mbr_partition_1.part_s);
+    }else if (m.mbr_partition_2.part_name == name){
+        availSpace = m.mbr_partition_3.part_start - (m.mbr_partition_2.part_start + m.mbr_partition_2.part_s);
+    }else if (m.mbr_partition_3.part_name == name){
+        availSpace = m.mbr_partition_4.part_start - (m.mbr_partition_3.part_start + m.mbr_partition_3.part_s);
+    }else if (m.mbr_partition_4.part_name == name){
+        availSpace = m.mbr_tamano - (m.mbr_partition_4.part_start + m.mbr_partition_4.part_s);
+    }
+    return availSpace;
+}
+
+int availSpaceLogPart(const string path, const string &name){
+    Partition ep = getExtPart(path);
+    EBR start = getEBR(path, ep.part_start);
+    int availSpace = -1;
+    if (start.part_next != -1){
+        EBR actual = getEBR(path, start.part_next);
+        while (actual.part_next != -1){
+            if (actual.part_name == name){
+                availSpace = getEBR(path, actual.part_next).part_start - (actual.part_start + actual.part_s);
+                return availSpace;
+            }
+            actual = getEBR(path, actual.part_next);
+        }
+        if (actual.part_name == name){
+            availSpace = ep.part_s - (actual.part_start + actual.part_s);
+        }
+    }
+    return availSpace;
+}
+
+bool choosePartToAdd(MBR &m, const string &name, int tam){
+    int availSpace = availSpacePart(m, name);
+    if (m.mbr_partition_1.part_name == name){
+        if (tam < availSpace){
+            m.mbr_partition_1.part_s = m.mbr_partition_1.part_s + tam;
+            return true;
+        }
+    }else if (m.mbr_partition_2.part_name == name){
+        if (tam < availSpace){
+            m.mbr_partition_2.part_s = m.mbr_partition_2.part_s + tam;
+            return true;
+        }
+    }else if (m.mbr_partition_3.part_name == name){
+        if (tam < availSpace){
+            m.mbr_partition_3.part_s = m.mbr_partition_3.part_s + tam;
+            return true;
+        }
+    }else if (m.mbr_partition_4.part_name == name){
+        if (tam < availSpace){
+            m.mbr_partition_4.part_s = m.mbr_partition_4.part_s + tam;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool chooseLogPartToAdd(const string path, const string &name, int tam){
+    Partition ep = getExtPart(path);
+    EBR e = getEBRByName(path, ep, name);
+    int availSpace = availSpaceLogPart(path, name);
+    if (tam < availSpace){
+        e.part_s = e.part_s + tam;
+        addEBR(path, e.part_start, e);
+        return true;
+    }
+    return false;
 }
 
 bool addVolToPart(const string path, const string name, int tam){
     if (fs::exists(path)){
         if (partExists(path, name)){
-            
+            MBR m = getMBR(path);
+            if (isPrimPart(m, name) || isExtPart(m, name)){
+                if (choosePartToAdd(m, name, tam)){
+                    addMBR(path, m);
+                    cout<< "Espacio de particion extendido" <<endl;
+                    return true;
+                }
+            }else if (isLogPart(path, name)){
+                if (chooseLogPartToAdd(path, name, tam)){
+                    cout<< "Espacio de particion logica exntendido" <<endl;
+                    return true;
+                }
+            }
         }else{
             cout<< "ERROR: La particion no existe" <<endl;
         }
     }else{
         cout<< "ERROR: El disco \"" << getFileName(path) << "\" no existe" <<endl;
     }
+    return false;
+}
+
+bool shrinkPartition(MBR &m, const string &name, int tam){
+    if(m.mbr_partition_1.part_name == name){
+        if (m.mbr_partition_1.part_s > abs(tam)){
+            m.mbr_partition_1.part_s = m.mbr_partition_1.part_s - tam;
+            return true;
+        }
+    }else if(m.mbr_partition_2.part_name == name){
+        if (m.mbr_partition_2.part_s > abs(tam)){
+            m.mbr_partition_2.part_s = m.mbr_partition_2.part_s - tam;
+            return true;
+        }
+    }else if(m.mbr_partition_3.part_name == name){
+        if (m.mbr_partition_3.part_s > abs(tam)){
+            m.mbr_partition_3.part_s = m.mbr_partition_3.part_s - tam;
+            return true;
+        }
+    }else if(m.mbr_partition_4.part_name == name){
+        if (m.mbr_partition_4.part_s > abs(tam)){
+            m.mbr_partition_4.part_s = m.mbr_partition_4.part_s - tam;
+            return true;
+        }
+    }
+    return false;
+}
+
+bool reducePartSize(const string path, const string name, int tam){
+    if (fs::exists(path)){
+        if (partExists(path, name)){
+            MBR m = getMBR(path);
+            if (isPrimPart(m, name) || isExtPart(m, name)){
+                if (shrinkPartition(m, name, tam)){
+                    addMBR(path, m);
+                    cout<< "Espacio de particion reducido" <<endl;
+                    return true;
+                }
+            }else if (isLogPart(path, name)){
+                Partition ep = getExtPart(path);
+                EBR e = getEBRByName(path, ep, name);
+                if (e.part_s > abs(tam)){
+                    e.part_s = e.part_s - tam;
+                    addEBR(path, e.part_start, e);
+                    cout<< "Espacio de particion logica reducido" <<endl;
+                    return true;
+                }
+            }
+        }else{
+            cout<< "ERROR: La particion no existe" <<endl;
+        }
+    }else{
+        cout<< "ERROR: El disco \"" << getFileName(path) << "\" no existe" <<endl;
+    }
+    return false;
+}
+
+//Number Partition Mounted Same Disk
+//Devuelve el numero de particiones montadas del mismo disco
+int numPartMtdSameDisk(const string path, const string name){
+    int cont = 0;
+    for(auto md : mds){
+        if (md.path == path && md.name == name) cont++;
+    }
+    return cont;
+}
+
+string getIdMtdDisk(const string path, const string name){
+    string lastNum = "31";
+    return (lastNum + to_string(numPartMtdSameDisk(path, name)) + getFileName(path));
+}
+
+bool mountDisk(const string path, const string name){
+    if (fs::exists(path)){
+        if (partExists(path, name)){
+            MountedDisk md = {path, name, getIdMtdDisk(path, name)};
+            mds.push_back(md);
+            cout<< "Disco montado correctamente" <<endl;
+            return true;
+        }else{
+            cout<< "ERROR: La particion no existe" <<endl;
+        }
+    }else{
+        cout<< "ERROR: El disco \"" << getFileName(path) << "\" no existe" <<endl;
+    }
+    return false;
+}
+
+bool idExists(const string id){
+    for (auto md : mds){
+        if (md.id == id) return true;
+    }
+    return false;
+}
+
+int getPartIdPos(const string id){
+    int pos = -1;
+    for (auto md : mds){
+        pos++;
+        if (md.id == id) return pos; 
+    }
+    return pos;
+}
+
+bool deleteID(const string id){
+    try{
+        auto elem_to_remove = mds.begin() + getPartIdPos(id);
+        if (elem_to_remove != mds.end()) mds.erase(elem_to_remove);
+        return true;
+    }catch (const exception& e){
+        cerr << e.what() << '\n';
+    }
+    return false;
+}
+
+bool unmountDisk(const string id){
+    if (idExists(id)){
+        if (deleteID(id)){
+            cout<< "ID eliminado satifactoriamente" <<endl;
+            return true;
+        }else{
+            cout<< "ERROR: El ID no pudo ser eliminado" <<endl;
+        }
+    }else{
+        cout<< "ERROR: El ID de particion no existe" <<endl;
+    }
+    return false;
 }

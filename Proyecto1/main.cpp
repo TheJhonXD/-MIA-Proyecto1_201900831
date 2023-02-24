@@ -38,8 +38,10 @@ void analyzer(string s) {
         FDISK(cmds);
     }else if (toLowerCase(cmds[0]) == "mount"){
         cout<< "»» " << s <<endl;
+        MOUNT(cmds);
     }else if (toLowerCase(cmds[0]) == "unmount"){
         cout<< "»» " << s <<endl;
+        UNMOUNT(cmds);
     }else if (toLowerCase(cmds[0]) == "mkfs"){
         cout<< "»» " << s <<endl;
     }else if (toLowerCase(cmds[0]) == "login"){
@@ -56,6 +58,7 @@ void analyzer(string s) {
         cout<< "»» " << s <<endl;
     }else if (toLowerCase(cmds[0]) == "rep"){
         cout<< "»» " << s <<endl;
+        REP(cmds);
     }else if (toLowerCase(cmds[0]) == "pause"){
         cout<< "Press any key to continue...";
         cin.get(); //Espero un caracter
