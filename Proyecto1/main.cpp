@@ -13,10 +13,11 @@ namespace fs = filesystem;
 //Analiza la entrada
 void analyzer(string s) {
     //Reemplazo los espacios dentro de las comillas por dolar
+    // cout<< "XD: " << s <<endl;
     replaceSpace(s, "&");
     //Compruebo si no es un comentario
     if (s.front() != '#') {
-        deleteComments(s);
+        s = deleteComments(s);
         s = trim(s);
     }
     //Divido la cadena en un vector
@@ -30,18 +31,23 @@ void analyzer(string s) {
     if (toLowerCase(cmds[0]) == "mkdisk"){
         cout<< "»» " << s <<endl;
         MKDISK(cmds);
+        cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "rmdisk"){
         cout<< "»» " << s <<endl;
         RMDISK(cmds);
+        cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "fdisk"){
         cout<< "»» " << s <<endl;
         FDISK(cmds);
+        cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "mount"){
         cout<< "»» " << s <<endl;
         MOUNT(cmds);
+        cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "unmount"){
         cout<< "»» " << s <<endl;
         UNMOUNT(cmds);
+        cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "mkfs"){
         cout<< "»» " << s <<endl;
     }else if (toLowerCase(cmds[0]) == "login"){

@@ -69,6 +69,10 @@ void readMBR(const string path) {
         cout<< "Hora: " << m.mbr_fecha_creacion.tm_hour << " : " << m.mbr_fecha_creacion.tm_min << " : " << m.mbr_fecha_creacion.tm_sec <<endl;
         cout<< "ID: " << m.mbr_dsk_signature <<endl;
         cout<< "Type: " << m.dsk_fit <<endl;
+        cout<< "Part 1: " << m.mbr_partition_1.part_name <<endl;
+        cout<< "Part 2: " << m.mbr_partition_2.part_name <<endl;
+        cout<< "Part 3: " << m.mbr_partition_3.part_name <<endl;
+        cout<< "Part 4: " << m.mbr_partition_4.part_name <<endl;
         fclose(myfile);
     } catch(const exception &e) {
         cerr << e.what() <<endl;
@@ -80,7 +84,7 @@ void readMBR(const string path) {
 void addEBR(const string path, int start, EBR e){
     try {
         FILE *myfile;
-        myfile = fopen(path.c_str(), "rb");
+        myfile = fopen(path.c_str(), "rb+");
         fseek(myfile, start, SEEK_SET);
         fwrite(&e, sizeof(EBR), 1, myfile);
         fclose(myfile);

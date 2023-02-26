@@ -50,7 +50,7 @@ string replaceSpace(string &s, const string &sym) {
         s = match.suffix();
     }
     //Compruebo que se haya hecho match
-    if (s_aux.length() > 0) s = s_aux;
+    if (s_aux.length() > 0) s = s_aux + s;
     return s;
 }
 
@@ -131,4 +131,8 @@ bool createDir(string path){
         }
     }
     return true;
+}
+
+int getPercentage(double size, double disk_size){
+    return ceil((size/disk_size) * 100);
 }

@@ -7,7 +7,7 @@ bool createDisk(string path, int tam){
     //Compruebo si no existe el archivo
     if (!fs::exists(path)){
         //creo los directorios si no existen
-        if (createDir(path)){
+        if (createDir(getPath(path))){
             FILE *_file;
             _file = fopen(path.c_str(), "wb");
             //Compruebo si se creo el archivo
@@ -17,9 +17,11 @@ bool createDisk(string path, int tam){
             /* Lleno el archivo con caracteres nulos para simular el tamaño */
             //*cambié esto
             char c[1024];
+            //char c = '\0';
             memset(c, 0, 1024); //Limpio la variable
             for (int i=0; i<tam/1024; i++){
                 fwrite(&c, sizeof(c), 1, _file);//Escribo en el archivo el contenido nulo del buffer
+                //fwrite(&c, 1, 1, _file);
             }
             fclose(_file); //Cierro el archivo
             cout<< "Disco creado exitosamente" <<endl;
@@ -47,6 +49,20 @@ bool deleteDisk(string path){
     return false;
 }
 
+bool hasExtPart(const string path){
+    MBR m = getMBR(path);
+    if (m.mbr_partition_1.part_type == 'e'){
+        return true;
+    }else if (m.mbr_partition_2.part_type == 'e'){
+        return true;
+    }else if (m.mbr_partition_3.part_type == 'e'){
+        return true;
+    }else if (m.mbr_partition_4.part_type == 'e'){
+        return true;
+    }
+    return false;
+}
+
 //Retorna la particion extendida del disco
 Partition getExtPart(const string &path){
     MBR m = getMBR(path);
@@ -59,7 +75,7 @@ Partition getExtPart(const string &path){
     }else if (m.mbr_partition_4.part_type == 'e'){
         return m.mbr_partition_4;
     }
-    return {};
+    return RPV();//!aqui
 }
 
 //Comprueba si una particion dada es primaria
@@ -92,16 +108,18 @@ bool isExtPart(MBR m, const string &name) {
 
 bool isLogPart(const string path, const string &name){
     Partition ep = getExtPart(path);
-    EBR start = getEBR(path, ep.part_start);
-    if (start.part_next != -1){
-        EBR actual = getEBR(path, start.part_next);
-        while (actual.part_next != -1){
-            if (actual.part_name == name){
-                return true;
+    if (ep.part_s > 0){
+        EBR start = getEBR(path, ep.part_start);
+        if (start.part_next > 0){
+            EBR actual = getEBR(path, start.part_next);
+            while (actual.part_next != -1){
+                if (actual.part_name == name){
+                    return true;
+                }
+                actual = getEBR(path, actual.part_next);
             }
-            actual = getEBR(path, actual.part_next);
+            if (actual.part_name == name) return true;
         }
-        if (actual.part_name == name) return true;
     }
     return false;
 }
@@ -117,7 +135,7 @@ Partition getPartByName(const string path, const string name){
     }else if (m.mbr_partition_4.part_name == name){
         return m.mbr_partition_4;
     }
-    return {}; //!aqui
+    return RPV(); //!aqui
 }
 
 //Comprueba si existe una particion
@@ -197,7 +215,8 @@ void addLogPartition(const string path, int prevSpace, EBR &nuevo){
             addEBR(path, nuevo.part_start, nuevo);
         }
     }else{
-        nuevo.part_next = getEBR(path, start.part_next).part_start;
+        if (start.part_next != -1)
+            nuevo.part_next = getEBR(path, start.part_next).part_start;
         start.part_next = nuevo.part_start;
         addEBR(path, start.part_start, start);
         addEBR(path, nuevo.part_start, nuevo);
@@ -225,6 +244,7 @@ void sortPartitions(MBR &m) {
         for (size_t j=0; j<parts.size(); j++){
             if (parts[j].part_start == sizes[i]){
                 nuevo.push_back(parts[i]);
+                break;
             }
         }
     }
@@ -276,7 +296,7 @@ vector<SpaceSize> BlockSize(const string path, MBR m){
                 prevSize = m.mbr_partition_2.part_s;
                 prevStart = m.mbr_partition_2.part_start;
                 endSpace = prevSize + prevStart;
-            }else if ((inicio - m.mbr_partition_2.part_start) == 0){
+            }else if (((endSpace + 1) - m.mbr_partition_2.part_start) == 0){//!a
                 v.push_back({m.mbr_partition_2.part_start, m.mbr_partition_2.part_s, 's', m.mbr_partition_2.part_type});
                 prevSize = m.mbr_partition_2.part_s;
                 prevStart = m.mbr_partition_2.part_start;
@@ -291,7 +311,7 @@ vector<SpaceSize> BlockSize(const string path, MBR m){
                 prevSize = m.mbr_partition_3.part_s;
                 prevStart = m.mbr_partition_3.part_start;
                 endSpace = prevSize + prevStart;
-            }else if ((inicio - m.mbr_partition_3.part_start) == 0){
+            }else if (((endSpace + 1) - m.mbr_partition_3.part_start) == 0){
                 v.push_back({m.mbr_partition_3.part_start, m.mbr_partition_3.part_s, 's', m.mbr_partition_3.part_type});
                 prevSize = m.mbr_partition_3.part_s;
                 prevStart = m.mbr_partition_3.part_start;
@@ -307,7 +327,7 @@ vector<SpaceSize> BlockSize(const string path, MBR m){
                 prevSize = m.mbr_partition_4.part_s;
                 prevStart = m.mbr_partition_4.part_start;
                 endSpace = prevSize + prevStart;
-            }else if ((inicio - m.mbr_partition_4.part_start) == 0){
+            }else if (((endSpace + 1) - m.mbr_partition_4.part_start) == 0){
                 v.push_back({m.mbr_partition_4.part_start, m.mbr_partition_4.part_s, 's', m.mbr_partition_4.part_type});
                 prevSize = m.mbr_partition_4.part_s;
                 prevStart = m.mbr_partition_4.part_start;
@@ -330,8 +350,8 @@ vector<SpaceSize> BlockSize(const string path, MBR m){
 vector<SpaceSize> ExtBlockSize(const string path){
     //todo: trabajar como particion estuviera en el inicio si no jala
     vector<SpaceSize> v;
-    int inicio = sizeof(EBR) + 1;
     Partition ep = getExtPart(path); //Partición extendida (extended partition)
+    int inicio = ep.part_start + sizeof(EBR) + 1;
     EBR e = getEBR(path, ep.part_start); //EBR inicial
     int endSpace = 0;
 
@@ -345,8 +365,9 @@ vector<SpaceSize> ExtBlockSize(const string path){
         }
 
         //Segunda parte
-        endSpace = actual.part_start + actual.part_s;
+        if (actual.part_next == -1) v.push_back({actual.part_start, actual.part_s, 's', 'l'});
         while (actual.part_next != -1){
+            endSpace = actual.part_start + actual.part_s;
             v.push_back({actual.part_start, actual.part_s, 's', 'l'});
             siguiente = getEBR(path, actual.part_next);
             if (abs((endSpace + 1) - siguiente.part_start) > 0){
@@ -356,6 +377,7 @@ vector<SpaceSize> ExtBlockSize(const string path){
         }
         
         //Tercera parte
+        endSpace = actual.part_start + actual.part_s;
         if ((endSpace + 1) < ep.part_s){
             v.push_back({endSpace + 1, ep.part_s - (endSpace + 1), 'n', '0'});
         }
@@ -484,6 +506,7 @@ bool extWorstFit(const string path, EBR &e){
     vector<SpaceSize> ss = ExtBlockSize(path); //Obtengo el bloque de tamaños
     int worstFitIdx = -1;
     int prevSpace = -1;
+    int aux = sizeof(ss)/sizeof(SpaceSize);
     for (int i=0; i<sizeof(ss)/sizeof(SpaceSize); i++){
         if ((ss[i].part_s >= e.part_s) && (ss[i].in_use != 's')){
             if (worstFitIdx == -1){
@@ -545,6 +568,9 @@ bool createPart(string path, Partition &p){
                 if (numExtPart(m) == 0){
                     if (numPrimPart(m) < 4){
                         if (chooseFit(path, m.dsk_fit, p)){
+                            EBR nuevo = REBRV();
+                            nuevo.part_start = p.part_start;
+                            addEBR(path, p.part_start, nuevo);
                             cout<< "Particion extendida creada correctamente" <<endl;
                             return true;
                         }else{
@@ -558,7 +584,8 @@ bool createPart(string path, Partition &p){
                 }
             }else if (p.part_type == 'l'){
                 if (numExtPart(m) > 0){
-                    EBR e = {-1, p.part_fit, p.part_start, p.part_s, -1, *p.part_name};
+                    EBR e = {-1, p.part_fit, p.part_start, p.part_s, -1};
+                    strcpy(e.part_name, p.part_name);
                     if (chooseExtFit(path, p.part_fit, e)){
                         cout<< "Particion logica creada correctamente" <<endl;
                     }else{
@@ -866,7 +893,7 @@ int numPartMtdSameDisk(const string path, const string name){
 
 string getIdMtdDisk(const string path, const string name){
     string lastNum = "31";
-    return (lastNum + to_string(numPartMtdSameDisk(path, name)) + getFileName(path));
+    return (lastNum + to_string(numPartMtdSameDisk(path, name) + 1) + getFileName(path));
 }
 
 bool mountDisk(const string path, const string name){
@@ -924,4 +951,14 @@ bool unmountDisk(const string id){
         cout<< "ERROR: El ID de particion no existe" <<endl;
     }
     return false;
+}
+
+vector<MountedDisk> getDisksMounted(){
+    return mds;
+}
+
+MountedDisk getDiskMtd(const string id){
+    for (auto md : mds)
+        if (md.id == id) return md;
+    return {};
 }

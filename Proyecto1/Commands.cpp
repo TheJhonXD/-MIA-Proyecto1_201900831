@@ -10,12 +10,13 @@ struct {
     string name = "-1";
     int add = 0;
     string id = "-1";
+    string ruta = "-1";
 } PDM; //disk managment parameters
 
 //Reseteo la estructura PDM
 void resetPDM(){
     PDM.s = -1; PDM.f = "-1"; PDM.u = "-1"; PDM.path = "-1"; PDM.t = "-1";
-    PDM.del = "-1"; PDM.name = "-1"; PDM.add = 0; PDM.id = "-1";
+    PDM.del = "-1"; PDM.name = "-1"; PDM.add = 0; PDM.id = "-1"; PDM.ruta = "-1";
 }
 
 //Comprueba valores validos para el parametro -s
@@ -138,7 +139,7 @@ bool check_param_name_rep(string &name){
 //Comprueba valores validos para el parametro -add
 //Parametro opcional
 bool check_param_add(int &add) {
-    return (add > 0 || add < 0) ? true : false;
+    return (add != 0) ? true : false;
 }
 
 bool check_param_id(string &id){
@@ -173,6 +174,7 @@ void MKDISK(vector<string> params) {
             //Creo e inicializo el MBR con los datos obtenidos
             MBR m = {PDM.s, getTime(), getRandomNumber(), *PDM.f.c_str(), RPV(), RPV(), RPV(), RPV()};
             addMBR(PDM.path, m); //Añado el MBR al disco creado
+            readMBR(PDM.path);
         }
         //resetPDM(); //Reseto la estructura
     }
@@ -225,7 +227,7 @@ void FDISK(vector<string> params) {
         }else if (toLowerCase(param[0]) == ">delete"){
             PDM.del = toLowerCase(param[1]);
         }else if (toLowerCase(param[0]) == ">name"){
-            PDM.name = param[1];
+            PDM.name = removeQuotes(param[1]);
         }else if (toLowerCase(param[0]) == ">add"){
             PDM.add = stoi(param[1]);
         }else{
@@ -235,18 +237,33 @@ void FDISK(vector<string> params) {
 
     //Compruebo los parametros
     //Parametros para crear una particion
-    if (check_param_s(PDM.s) && check_param_path(PDM.path) && check_param_u(PDM.u)
-        && check_param_name(PDM.name) && check_param_t(PDM.t)) {
-        //Creo una variable particion para guardar los datos, excepto el inicio de partcion y el estado
-        Partition p = {-1, *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s, *PDM.name.c_str()};
-        createPart(PDM.path, p); //Creo la particion y compruebo que todo ha salido correctamente
-    }
+    if (PDM.del == "-1" && PDM.add == 0){
+        if (check_param_s(PDM.s) && check_param_path(PDM.path) && check_param_u_fdisk(PDM.u)
+            && check_param_name(PDM.name) && check_param_t(PDM.t) && check_param_f_fdisk(PDM.f)) {
+            //Conversión de kilobytes y megabytes.
+            if (PDM.u == "k")
+                PDM.s *= 1024;
+            else if (PDM.u == "m")
+                PDM.s *= 1024*1024;
+            //Creo una variable particion para guardar los datos, excepto el inicio de partcion y el estado
+            Partition p = {-1, *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s};
+            strcpy(p.part_name, PDM.name.c_str());
+            if (createPart(PDM.path, p)){ //Creo la particion y compruebo que todo ha salido correctamente
+                readMBR(PDM.path);
+            } 
+        }else{
+            cout<< "ERROR: No se pudo realizar la accion" <<endl;
+        }
+    }else if (PDM.add == 0){
         //Parametros para eliminar una particion
-    else if (check_param_delete(PDM.del) && check_param_path(PDM.path) && check_param_name(PDM.name)){
-        deletePart(PDM.path, PDM.name);
+        if (check_param_delete(PDM.del) && check_param_path(PDM.path) && check_param_name(PDM.name)){
+            deletePart(PDM.path, PDM.name);
+        }else{
+            cout<< "ERROR: No se pudo realizar la accion" <<endl;
+        }
     }
         //Parametros para añadir o reducir volumen de una particion
-    else if (check_param_add(PDM.add) && check_param_u(PDM.u) && check_param_path(PDM.path) && check_param_name(PDM.name)){
+    else if (check_param_add(PDM.add) && check_param_u_fdisk(PDM.u) && check_param_path(PDM.path) && check_param_name(PDM.name)){
         (PDM.u == "k") ? PDM.add *= 1024 : PDM.add *= 1024*1024;
         if (PDM.add > 0){
             addVolToPart(PDM.path, PDM.name, PDM.add);
@@ -266,7 +283,7 @@ void MOUNT(vector<string> params){
         param = split(params[i], "=");
         /* Guardo los valores obtenidos en la estructura */
         if (toLowerCase(param[0]) == ">name"){
-            PDM.name = param[1];
+            PDM.name = removeQuotes(param[1]);
         }else if (toLowerCase(param[0]) == ">path"){
             PDM.path = removeQuotes(param[1]);
         }else{
@@ -306,20 +323,22 @@ void REP(vector<string> params){
         param = split(params[i], "=");
         /* Guardo los valores obtenidos en la estructura */
         if (toLowerCase(param[0]) == ">name"){
-            PDM.name = toLowerCase(param[1]);
+            PDM.name = toLowerCase(removeQuotes(param[1]));
         }else if (toLowerCase(param[0]) == ">path"){
             PDM.path = removeQuotes(param[1]);
         }else if (toLowerCase(param[0]) == ">id"){
-            PDM.t = toLowerCase(param[1]);
+            PDM.id = param[1];
         }else if (toLowerCase(param[0]) == ">ruta"){
-            //PDM.f = toLowerCase(param[1]);
-            //!Realizar comprobación de ruta y id
+            PDM.ruta = removeQuotes(param[1]);
         }else{
             cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
         }
     }
     //?Solo prueba
-    if (check_param_name_rep(PDM.name) && check_param_path(PDM.path)){
-        getDiskGraph(PDM.path);
+    if (PDM.name == "mbr" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
+        //getDiskGraph(PDM.path);
+    }else if (PDM.name == "disk" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
+        getDiskGraph(PDM.path, PDM.id);
     }
+    
 }

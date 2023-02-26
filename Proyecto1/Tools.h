@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <sstream>
 #include <regex>
+#include <math.h>
 
 using namespace std;
 namespace fs = filesystem;
@@ -27,5 +28,6 @@ string getPath(fs::path p);
 string getFileName(fs::path p);
 string getFileExt(fs::path p);
 bool createDir(string path);
+int getPercentage(double size, double disk_size);
 
 #endif //PROYECTO1_TOOLS_H

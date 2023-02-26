@@ -1,5 +1,5 @@
 digraph {
-    node [ shape=none fontname=Arial ]
+    node [ shape=none fontname=Arial fontsize=10]
 
     n4 [ label = <
         <table border="" color="dodgerblue3">
