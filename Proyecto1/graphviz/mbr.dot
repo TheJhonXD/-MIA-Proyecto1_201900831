@@ -3,20 +3,73 @@ digraph {
     node [ shape=none fontname=Helvetica ];
 
     n1 [ label = <
-        <table border="2" cellspacing="0" cellpadding="10">
-        <tr><td colspan="2" bgcolor="teal" border="1" align="left" width="400"><b><font point-size="16" color="white">REPORTE DE MBR</font></b></td></tr>
-        <tr>
-            <td border="0">mbr_tamano</td>
-            <td border="0">four</td>
-        </tr>
-        <tr>
-            <td border="0">mbr_fecha_creacion</td>
-            <td border="0">four</td>
-        </tr>
-        <tr>
-            <td border="0">mbr_disk_signature</td>
-            <td border="0">three</td>
-        </tr>
+        <table border="2" cellspacing="0" cellpadding="10" >
+            <tr><td colspan="2" bgcolor="slateblue" border="1" align="left" width="500" color="white"><b><font point-size="16" color="white">REPORTE DE MBR</font></b></td></tr>
+            <tr>
+                <td border="0" width="250">mbr_tamano</td>
+                <td border="0" width="250" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">mbr_fecha_creacion</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">mbr_disk_signature</td>
+                <td border="0" align="left">four</td>
+            </tr>
+
+            <tr><td colspan="2" bgcolor="slateblue" border="1" align="left" width="500" color="white"><b><font point-size="16" color="white">Particion</font></b></td></tr>
+            <tr>
+                <td border="0">part_status</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_type</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_fit</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_start</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_size</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_name</td>
+                <td border="0" align="left">four</td>
+            </tr>
+
+            <tr><td colspan="2" bgcolor="tomato" border="1" align="left" width="500" color="white"><b><font point-size="16" color="white">Particion Logica</font></b></td></tr>
+            <tr>
+                <td border="0">part_status</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_next</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_fit</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_start</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_size</td>
+                <td border="0" align="left">four</td>
+            </tr>
+            <tr>
+                <td border="0">part_name</td>
+                <td border="0" align="left">four</td>
+            </tr>
+
         </table>
     > ];
 

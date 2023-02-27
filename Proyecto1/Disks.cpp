@@ -124,7 +124,7 @@ bool isLogPart(const string path, const string &name){
     return false;
 }
 
-Partition getPartByName(const string path, const string name){
+Partition getPartByName(const string &path, const string &name){
     MBR m = getMBR(path);
     if (m.mbr_partition_1.part_name == name){
         return m.mbr_partition_1;
@@ -135,7 +135,25 @@ Partition getPartByName(const string path, const string name){
     }else if (m.mbr_partition_4.part_name == name){
         return m.mbr_partition_4;
     }
-    return RPV(); //!aqui
+    return RPV();
+}
+
+EBR getLogPartByName(const string &path, const string &name){
+    Partition ep = getExtPart(path);
+    if (ep.part_s > 0){
+        EBR start = getEBR(path, ep.part_start);
+        if (start.part_next > 0){
+            EBR actual = getEBR(path, start.part_next);
+            while (actual.part_next != -1){
+                if (actual.part_name == name){
+                    return actual;
+                }
+                actual = getEBR(path, actual.part_next);
+            }
+            if (actual.part_name == name) return actual;
+        }
+    }
+    return REBRV();
 }
 
 //Comprueba si existe una particion

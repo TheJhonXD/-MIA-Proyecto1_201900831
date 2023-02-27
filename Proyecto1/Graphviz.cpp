@@ -1,7 +1,7 @@
 #include "Graphviz.h"
 
-//Crea las columnas y filas de la tabla para crear el mbr, espacios libres y ocupados
-//Recibe la ruta del disco y el mbr
+// Crea las columnas y filas de la tabla para crear el mbr, espacios libres y ocupados
+// Recibe la ruta del disco y el mbr
 string repDiskTR(const string path, MBR m){
     string graph = "";
     string start = "\t\t\t<tr>\n";
@@ -17,7 +17,8 @@ string repDiskTR(const string path, MBR m){
     if (ep.part_s > 0){
         ssExt = ExtBlockSize(path);
         for (auto sExt : ssExt)
-            if (sExt.in_use == 's') contInUse++;
+            if (sExt.in_use == 's')
+                contInUse++;
     }
     int tamExt = sizeof(ssExt) / sizeof(SpaceSize);
 
@@ -25,23 +26,26 @@ string repDiskTR(const string path, MBR m){
         int pct = getPercentage(s.part_s, m.mbr_tamano);
         if (s.in_use == 'n'){
             graph += "\t\t\t\t<td colspan=\"2\" rowspan=\"12\">Libre<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
-        }else if(s.in_use == 's'){
+        }
+        else if (s.in_use == 's'){
             if (s.type == 'p'){
                 graph += "\t\t\t\t<td colspan=\"2\" rowspan=\"12\">Primaria<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
-            }else if (s.type == 'e'){
+            }
+            else if (s.type == 'e'){
                 graph += "\t\t\t\t<td colspan=\"" + to_string(tamExt + contInUse) + "\">Extendida<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
             }
         }
     }
     graph += "\t\t\t</tr>\n";
-    
+
     if (ep.part_s > 0){
         graph += "\t\t\t<tr>\n";
         for (auto sExt : ssExt){
-            int pct = getPercentage(sExt.part_s,  ep.part_s);
+            int pct = getPercentage(sExt.part_s, ep.part_s);
             if (sExt.in_use == 'n'){
                 graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">Libre<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
-            }else if(sExt.in_use == 's'){
+            }
+            else if (sExt.in_use == 's'){
                 graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">EBR</td>\n";
                 graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">Logica<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
             }
@@ -51,8 +55,8 @@ string repDiskTR(const string path, MBR m){
     return graph;
 }
 
-//Crea el maquetado del inicio, intermedio, el final de la grafica y la retorna en un string
-//Recibe como parametro la ruta del disco
+// Crea el maquetado del inicio, intermedio, el final de la grafica y la retorna en un string
+// Recibe como parametro la ruta del disco
 string diskChart(const string path){
     MBR m = getMBR(path);
     string graph = "";
@@ -66,13 +70,13 @@ string diskChart(const string path){
     return graph;
 }
 
-//Crea el archivo dot y la imagen del reporte de disco
-//Recibe como parametro la ruta donde se guardará la imagen y el id del disco
+// Crea el archivo dot y la imagen del reporte de disco
+// Recibe como parametro la ruta donde se guardará la imagen y el id del disco
 void getDiskGraph(const string path, const string id){
     string ruta = getPath(path) + getFileName(path) + ".dot";
     // string rutaAux = "/home/jhonx/Escritorio/Carpetas/Pruebas/nombreXD";
     string cmd;
-    
+
     if (idExists(id)){
         if (createDir(getPath(path))){
             string text = diskChart(getDiskMtd(id).path);
@@ -81,22 +85,134 @@ void getDiskGraph(const string path, const string id){
                 FILE *myfile;
                 myfile = fopen(ruta.c_str(), "w+");
                 if (myfile == NULL){
-                    cout<< "ERROR: El disco no pudo ser creado" <<endl; 
+                    cout << "ERROR: El archivo dot no pudo ser creado" << endl;
                     exit(1);
                 }
                 fwrite(text.c_str(), 1, text.size(), myfile);
                 fclose(myfile);
                 cmd = "dot -T" + getFileExt(path).substr(1) + " " + ruta + " -o " + getPath(ruta) + getFileName(path);
                 system(cmd.c_str());
-            } catch(const exception& e){
+            }
+            catch (const exception &e){
                 cerr << e.what() << '\n';
             }
         }
-    }else{
-        cout<< "ERROR: La particion no está montada" <<endl;
+    }
+    else{
+        cout << "ERROR: La particion no está montada" << endl;
     }
 }
 
-void createMBRReport(const string path, const string id){
-    //!Codigo aquí
+string createRowMBRRpt(string param, string valor){
+    string graph = "\t\t\t<tr>\n";
+    graph += "\t\t\t\t<td border=\"0\" width=\"250\">" + param + "</td>\n";
+    graph += "\t\t\t\t<td border=\"0\" width=\"250\">" + valor + "</td>\n";
+    graph += "\t\t\t</tr>\n";
+    return graph;
+}
+
+string getTableMBRInfo(const string path){
+    string graph = "";
+    MBR m = getMBR(path);
+    graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">REPORTE DE MBR</font></b></td></tr>\n";
+    graph += createRowMBRRpt("mbr_tamano", to_string(m.mbr_tamano));
+    string fecha = to_string(m.mbr_fecha_creacion.tm_year) + " - " + to_string(m.mbr_fecha_creacion.tm_mon) + " - " + to_string(m.mbr_fecha_creacion.tm_mday);
+    graph += createRowMBRRpt("mbr_fecha_creacion", fecha + " " + to_string(m.mbr_fecha_creacion.tm_hour) + ":" + to_string(m.mbr_fecha_creacion.tm_min));
+    graph += createRowMBRRpt("mbr_disk_signature", to_string(m.mbr_dsk_signature));
+    return graph;
+}
+
+string getTableExtPartInfo(const string path){
+    string graph = "";
+    Partition ep = getExtPart(path);
+    if (ep.part_s > 0){
+        EBR start = getEBR(path, ep.part_start);
+        if (start.part_next > 0){
+            EBR actual = getEBR(path, start.part_next);
+            graph += "<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
+            while (actual.part_next != -1){
+                graph += createRowMBRRpt("part_status", to_string(actual.part_status));
+                graph += createRowMBRRpt("part_next", to_string(actual.part_next));
+                graph += createRowMBRRpt("part_fit", to_string(actual.part_fit));
+                graph += createRowMBRRpt("part_start", to_string(actual.part_start));
+                graph += createRowMBRRpt("part_size", to_string(actual.part_s));
+                graph += createRowMBRRpt("part_name", actual.part_name);
+                
+                actual = getEBR(path, actual.part_next);
+            }
+            if (actual.part_s > 0){
+                graph += createRowMBRRpt("part_status", to_string(actual.part_status));
+                graph += createRowMBRRpt("part_next", to_string(actual.part_next));
+                graph += createRowMBRRpt("part_fit", to_string(actual.part_fit));
+                graph += createRowMBRRpt("part_start", to_string(actual.part_start));
+                graph += createRowMBRRpt("part_size", to_string(actual.part_s));
+                graph += createRowMBRRpt("part_name", actual.part_name);
+            }
+        }
+    }
+    return graph;
+}
+
+string getTablePartInfo(const string path, const string name){
+    string graph = "";
+    Partition p = getPartByName(path, name);
+    if (p.part_s > 0){
+        graph += "<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion</font></b></td></tr>";
+        graph += createRowMBRRpt("part_status", to_string(p.part_status));
+        graph += createRowMBRRpt("part_type", to_string(p.part_type));
+        graph += createRowMBRRpt("part_fit", to_string(p.part_fit));
+        graph += createRowMBRRpt("part_start", to_string(p.part_start));
+        graph += createRowMBRRpt("part_size", to_string(p.part_s));
+        graph += createRowMBRRpt("part_name", p.part_name);
+    }
+    if (p.part_type = 'e'){
+        graph += getTableExtPartInfo(path);
+    }
+
+    return graph;
+}
+
+string getMBRReport(const string path, const string name){
+    string graph = "";
+    string start = "digraph {\n\tnode [ shape=none fontname=Arial fontsize=12];\n\n\tn1 [ label = <\n";
+    string st_table = "\t\t<table border=\"2\" cellspacing=\"0\" cellpadding=\"10\">\n";
+    string end = "\t\t</table>\n\t> ];\n\n\t{rank=same n1};\n}";
+
+    graph += start;
+    graph += st_table;
+    graph += getTableMBRInfo(path);
+    //!Falta hacer que muestre cada particion del mbr y el name que se le está pasando no es correcto
+    graph += getTablePartInfo(path, name);
+    //!-------------------------------------
+    graph += end;
+
+    return graph;
+}
+
+void createMBRReport(const string path, const string name, const string id){
+    string ruta = getPath(path) + getFileName(path) + ".dot";
+    string cmd;
+    if (idExists(id)){
+        if (createDir(getPath(path))){
+            string text = getMBRReport(getDiskMtd(id).path, name);
+            try{
+                FILE *myfile;
+                myfile = fopen(ruta.c_str(), "w+");
+                if (myfile == NULL){
+                    cout << "ERROR: El archivo dot no pudo ser creado" << endl;
+                    exit(1);
+                }
+                fwrite(text.c_str(), 1, text.size(), myfile);
+                fclose(myfile);
+                cmd = "dot -T" + getFileExt(path).substr(1) + " " + ruta + " -o " + getPath(ruta) + getFileName(path);
+                system(cmd.c_str());
+            }
+            catch (const exception &e){
+                cerr << e.what() << '\n';
+            }
+        }
+    }
+    else{
+        cout << "ERROR: La particion no está montada" << endl;
+    }
 }

@@ -10,6 +10,8 @@ bool createDisk(string path, int tam);
 bool deleteDisk(string path);
 bool hasExtPart(const string path);
 Partition getExtPart(const string &path);
+Partition getPartByName(const string &path, const string &name);
+EBR getLogPartByName(const string &path, const string &name);
 vector<SpaceSize> BlockSize(const string path, MBR m);
 vector<SpaceSize> ExtBlockSize(const string path);
 bool createPart(string path, Partition &p);
