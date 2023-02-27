@@ -5,5 +5,6 @@
 #include <math.h>
 
 void getDiskGraph(string path, string id);
+void createMBRReport(string path, string id);
 
 #endif //PROYECTO1_GRAPHVIZ_H

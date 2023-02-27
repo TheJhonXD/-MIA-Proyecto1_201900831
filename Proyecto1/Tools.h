@@ -20,7 +20,7 @@ string trim(const string &s);
 string replaceSpace(string &s, const string &sym);
 string replaceAmpersand(string &s, const string &sym);
 vector<string> split(string s, const string del);
-string toString(char *name);
+string toString(char name);
 string deleteComments(string &s);
 string removeQuotes(string s);
 int getRandomNumber();

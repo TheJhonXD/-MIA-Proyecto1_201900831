@@ -146,7 +146,7 @@ bool check_param_id(string &id){
     return (id != "-1") ? true : false;
 }
 
-//Analiza y realiza las funciones que debe realizar mkdisk
+//Analiza y realiza las funciones que debe realizar mkdisk (crear un disco)
 //Recibe un vector de parametros
 void MKDISK(vector<string> params) {
     vector<string> param;
@@ -181,7 +181,7 @@ void MKDISK(vector<string> params) {
     resetPDM(); //Reseteo la estructura
 }
 
-//Analiza y realiza las funciones que debe realizar el comando rmdisk
+//Analiza y realiza las funciones que debe realizar el comando rmdisk (eliminar un disco)
 //Recibe un vector de parametros
 void RMDISK(vector<string> params) {
     vector<string> param;
@@ -276,6 +276,8 @@ void FDISK(vector<string> params) {
     resetPDM();
 }
 
+//Analiza y realiza las funciones que debe realizar el comando MOUNT (montar una particion)
+//Recibe un vector de parametros
 void MOUNT(vector<string> params){
     vector<string> param;
     for (size_t i=1; i<params.size(); i++){
@@ -297,6 +299,8 @@ void MOUNT(vector<string> params){
     resetPDM();
 }
 
+//Analiza y realiza las funciones que debe realizar el comando UNMOUNT (Desmontar una partcion)
+//Recibe un vector de parametros
 void UNMOUNT(vector<string> params){
     vector<string> param;
     for (size_t i=1; i<params.size(); i++){
@@ -316,6 +320,12 @@ void UNMOUNT(vector<string> params){
     resetPDM();
 }
 
+void MKFS(vector<string> params){
+    
+}
+
+//Analiza y realiza las funciones que debe realizar el comando rep (crear reportes)
+//Recibe un vector de parametros
 void REP(vector<string> params){
     vector<string> param;
     for (size_t i=1; i<params.size(); i++){
@@ -336,9 +346,9 @@ void REP(vector<string> params){
     }
     //?Solo prueba
     if (PDM.name == "mbr" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
-        //getDiskGraph(PDM.path);
+        createMBRReport(PDM.path, PDM.id);
     }else if (PDM.name == "disk" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
         getDiskGraph(PDM.path, PDM.id);
     }
-    
+    resetPDM();
 }

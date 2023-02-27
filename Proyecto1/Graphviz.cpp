@@ -61,7 +61,7 @@ string diskChart(const string path){
     MBR m = getMBR(path);
     string graph = "";
     string start = "digraph {\n\tnode [ shape=none fontname=Arial fontsize=12];\n\n\tn4 [ label = <\n";
-    string st_table = "\t\t<table border=\"\" color=\"dodgerblue3\">\n";
+    string st_table = "\t\t<table border=\"1\" color=\"dodgerblue3\">\n";
     string end = "\t\t</table>\n\t> ];\n\n\t{rank=same n4};\n}";
     graph += start;
     graph += st_table;
@@ -92,6 +92,7 @@ void getDiskGraph(const string path, const string id){
                 fclose(myfile);
                 cmd = "dot -T" + getFileExt(path).substr(1) + " " + ruta + " -o " + getPath(ruta) + getFileName(path);
                 system(cmd.c_str());
+                cout<< "Grafo creado correctamente" <<endl;
             }
             catch (const exception &e){
                 cerr << e.what() << '\n';
@@ -103,6 +104,8 @@ void getDiskGraph(const string path, const string id){
     }
 }
 
+//Retorna el maquetado de una fila de informacion que se le indique
+//Recibe como parametro el nombre del parametro y su valor
 string createRowMBRRpt(string param, string valor){
     string graph = "\t\t\t<tr>\n";
     graph += "\t\t\t\t<td border=\"0\" width=\"250\">" + param + "</td>\n";
@@ -111,17 +114,21 @@ string createRowMBRRpt(string param, string valor){
     return graph;
 }
 
+//Retorna el maquetado de la seccion de informacion del MBR
+//Recibe como parametro la ruta del disco
 string getTableMBRInfo(const string path){
     string graph = "";
     MBR m = getMBR(path);
     graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">REPORTE DE MBR</font></b></td></tr>\n";
     graph += createRowMBRRpt("mbr_tamano", to_string(m.mbr_tamano));
-    string fecha = to_string(m.mbr_fecha_creacion.tm_year) + " - " + to_string(m.mbr_fecha_creacion.tm_mon) + " - " + to_string(m.mbr_fecha_creacion.tm_mday);
+    string fecha = to_string(m.mbr_fecha_creacion.tm_year) + "-" + to_string(m.mbr_fecha_creacion.tm_mon) + "-" + to_string(m.mbr_fecha_creacion.tm_mday);
     graph += createRowMBRRpt("mbr_fecha_creacion", fecha + " " + to_string(m.mbr_fecha_creacion.tm_hour) + ":" + to_string(m.mbr_fecha_creacion.tm_min));
     graph += createRowMBRRpt("mbr_disk_signature", to_string(m.mbr_dsk_signature));
     return graph;
 }
 
+//Retorna el maquetado de las secciones de particion logica
+//Recibe como parametro la ruta del disco
 string getTableExtPartInfo(const string path){
     string graph = "";
     Partition ep = getExtPart(path);
@@ -129,11 +136,11 @@ string getTableExtPartInfo(const string path){
         EBR start = getEBR(path, ep.part_start);
         if (start.part_next > 0){
             EBR actual = getEBR(path, start.part_next);
-            graph += "<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
+            graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
             while (actual.part_next != -1){
                 graph += createRowMBRRpt("part_status", to_string(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
-                graph += createRowMBRRpt("part_fit", to_string(actual.part_fit));
+                graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
                 graph += createRowMBRRpt("part_start", to_string(actual.part_start));
                 graph += createRowMBRRpt("part_size", to_string(actual.part_s));
                 graph += createRowMBRRpt("part_name", actual.part_name);
@@ -143,7 +150,7 @@ string getTableExtPartInfo(const string path){
             if (actual.part_s > 0){
                 graph += createRowMBRRpt("part_status", to_string(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
-                graph += createRowMBRRpt("part_fit", to_string(actual.part_fit));
+                graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
                 graph += createRowMBRRpt("part_start", to_string(actual.part_start));
                 graph += createRowMBRRpt("part_size", to_string(actual.part_s));
                 graph += createRowMBRRpt("part_name", actual.part_name);
@@ -153,14 +160,16 @@ string getTableExtPartInfo(const string path){
     return graph;
 }
 
-string getTablePartInfo(const string path, const string name){
+//Retorna el maquetado de una seccion de Particion del mbr y si es exentedia tambien retorna las logicas
+//Recibe como parametro la ruta del dsico y la particion
+string getTablePartInfo(const string path, Partition p){
     string graph = "";
-    Partition p = getPartByName(path, name);
+    // Partition p = getPartByName(path, name);
     if (p.part_s > 0){
-        graph += "<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion</font></b></td></tr>";
+        graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion</font></b></td></tr>";
         graph += createRowMBRRpt("part_status", to_string(p.part_status));
-        graph += createRowMBRRpt("part_type", to_string(p.part_type));
-        graph += createRowMBRRpt("part_fit", to_string(p.part_fit));
+        graph += createRowMBRRpt("part_type", toString(p.part_type));
+        graph += createRowMBRRpt("part_fit", toString(p.part_fit));
         graph += createRowMBRRpt("part_start", to_string(p.part_start));
         graph += createRowMBRRpt("part_size", to_string(p.part_s));
         graph += createRowMBRRpt("part_name", p.part_name);
@@ -172,29 +181,37 @@ string getTablePartInfo(const string path, const string name){
     return graph;
 }
 
-string getMBRReport(const string path, const string name){
+// Crea el maquetado del inicio, intermedio, el final de la tabla y la retorna en un string
+// Recibe como parametro la ruta del disco
+string getMBRReport(const string path){
     string graph = "";
     string start = "digraph {\n\tnode [ shape=none fontname=Arial fontsize=12];\n\n\tn1 [ label = <\n";
     string st_table = "\t\t<table border=\"2\" cellspacing=\"0\" cellpadding=\"10\">\n";
     string end = "\t\t</table>\n\t> ];\n\n\t{rank=same n1};\n}";
+    MBR m = getMBR(path);
 
     graph += start;
     graph += st_table;
     graph += getTableMBRInfo(path);
-    //!Falta hacer que muestre cada particion del mbr y el name que se le está pasando no es correcto
-    graph += getTablePartInfo(path, name);
-    //!-------------------------------------
+    
+    graph += getTablePartInfo(path, m.mbr_partition_1);
+    graph += getTablePartInfo(path, m.mbr_partition_2);
+    graph += getTablePartInfo(path, m.mbr_partition_3);
+    graph += getTablePartInfo(path, m.mbr_partition_4);
+    
     graph += end;
 
     return graph;
 }
 
-void createMBRReport(const string path, const string name, const string id){
+// Crea el archivo dot y la imagen del reporte del MBR
+// Recibe como parametro la ruta donde se guardará la imagen y el id del disco
+void createMBRReport(const string path, const string id){
     string ruta = getPath(path) + getFileName(path) + ".dot";
     string cmd;
     if (idExists(id)){
         if (createDir(getPath(path))){
-            string text = getMBRReport(getDiskMtd(id).path, name);
+            string text = getMBRReport(getDiskMtd(id).path);
             try{
                 FILE *myfile;
                 myfile = fopen(ruta.c_str(), "w+");
@@ -206,6 +223,7 @@ void createMBRReport(const string path, const string name, const string id){
                 fclose(myfile);
                 cmd = "dot -T" + getFileExt(path).substr(1) + " " + ruta + " -o " + getPath(ruta) + getFileName(path);
                 system(cmd.c_str());
+                cout<< "Grafo creado correctamente" <<endl;
             }
             catch (const exception &e){
                 cerr << e.what() << '\n';

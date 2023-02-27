@@ -81,7 +81,7 @@ vector<string> split(string s, const string del) {
 }
 
 //Convierte un caracter a una cadena (char to string)
-string toString(char *name){
+string toString(char name){
     string s;
     stringstream ss;
     ss << name;
