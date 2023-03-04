@@ -11,12 +11,14 @@ struct {
     int add = 0;
     string id = "-1";
     string ruta = "-1";
+    string fs = "-1";
 } PDM; //disk managment parameters
 
 //Reseteo la estructura PDM
 void resetPDM(){
     PDM.s = -1; PDM.f = "-1"; PDM.u = "-1"; PDM.path = "-1"; PDM.t = "-1";
     PDM.del = "-1"; PDM.name = "-1"; PDM.add = 0; PDM.id = "-1"; PDM.ruta = "-1";
+    PDM.fs = "-1";
 }
 
 //Comprueba valores validos para el parametro -s
@@ -142,8 +144,23 @@ bool check_param_add(int &add) {
     return (add != 0) ? true : false;
 }
 
+//Comprueba valores validos para el parametro id
 bool check_param_id(string &id){
     return (id != "-1") ? true : false;
+}
+
+bool check_param_t_mkfs(string &t){
+    if (t != "full" || t != "-1"){
+        cout<< "ERROR: \"" << t << "\" no es un valor valido" <<endl;
+        return false;
+    }
+    return true;
+}
+
+bool check_param_fs(string &fs){
+    if (fs == "-1") fs = "2fs";
+    if (fs == "2fs" || fs == "3fs") return true;
+    return false;
 }
 
 //Analiza y realiza las funciones que debe realizar mkdisk (crear un disco)
@@ -321,7 +338,26 @@ void UNMOUNT(vector<string> params){
 }
 
 void MKFS(vector<string> params){
-    
+    vector<string> param;
+    for (size_t i=1; i<params.size(); i++){
+        //Separo el parametro de su valor
+        param = split(params[i], "=");
+        /* Guardo los valores obtenidos en la estructura */
+        if (toLowerCase(param[0]) == ">id"){
+            PDM.id = param[1];
+        }else if (toLowerCase(param[0]) == ">type"){
+            PDM.t = toLowerCase(param[1]);
+        }else if (toLowerCase(param[0]) == ">fs"){
+            PDM.t = toLowerCase(param[1]);
+        }else{
+            cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
+        }
+    }
+
+    if (check_param_id(PDM.id) && check_param_t_mkfs(PDM.t) && check_param_fs(PDM.fs)){
+        //!Codigo aquí
+    }
+    resetPDM();
 }
 
 //Analiza y realiza las funciones que debe realizar el comando rep (crear reportes)

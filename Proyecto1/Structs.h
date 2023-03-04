@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <string>
+#include <math.h>
 
 using namespace std;
 
@@ -57,15 +58,83 @@ struct EBR{
     char part_name[16];
 };
 
+struct SuperBlock{
+    int s_filesystem_type;
+    int s_inodes_count;
+    int s_blocks_count;
+    int s_free_blocks_count;
+    int s_free_inodes_count;
+    Time s_mtime;
+    Time s_umtime;
+    int s_mnt_count;
+    int s_magic;
+    int s_inode_s;
+    int s_block_s;
+    int s_firts_ino;
+    int s_first_blo;
+    int s_bm_inode_start;
+    int s_bm_block_start;
+    int s_inode_start;
+    int s_block_start;
+};
+
+struct Inodo{
+    int i_uid;
+    int I_gid;
+    int i_s;
+    Time i_atime;
+    Time i_ctime;
+    Time i_mtime;
+    int i_block;
+    char i_type;
+    int i_perm;
+};
+
+struct content{
+    char b_name[12];
+    int b_inodo;
+};
+
+struct FolderBlock{
+    content b_content[4];
+};
+
+struct FileBlock{
+    char b_content[64];
+};
+
+struct PointerBlock{
+    int b_pointers[16];
+};
+
+struct Journaling{
+    char operation[10];
+    char type[10];
+    char name[25];
+    char content;
+    Time date;
+};
+
 //FUNCIONES
 Time getTime();
 Partition RPV();
 EBR REBRV();
+SuperBlock RSBV();
 void addMBR(const string path, MBR m);
 MBR getMBR(const string path);
 void readMBR(const string path);
 void addEBR(const string path, int start, EBR e);
 EBR getEBR(const string path, int start);
 EBR getEBRByName(const string path, Partition ep, const string &name);
+void addSuperBlock(const string &path, int start, SuperBlock sb);
+SuperBlock getSuperBlock(const string path, int start);
+void addInodo(const string &path, int start, Inodo i);
+Inodo getInodo(const string path, int start);
+void addFolderBlock(const string &path, int start, FolderBlock fb);
+FolderBlock getFolderBlock(const string path, int start);
+void addFileBlock(const string &path, int start, FileBlock fb);
+FileBlock getFileBlock(const string path, int start);
+void addPointerBlock(const string &path, int start, PointerBlock pb);
+PointerBlock getPointerBlock(const string path, int start);
 
 #endif //PROYECTO1_STRUCTS_H

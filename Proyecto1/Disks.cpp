@@ -971,6 +971,7 @@ bool unmountDisk(const string id){
     return false;
 }
 
+/*------- Creados para graphviz ---------*/
 vector<MountedDisk> getDisksMounted(){
     return mds;
 }
@@ -979,4 +980,51 @@ MountedDisk getDiskMtd(const string id){
     for (auto md : mds)
         if (md.id == id) return md;
     return {};
+}
+/* ------------------------------------- */
+
+bool makeFileSystem(const string &id, string fs){
+    if (idExists(id)){
+        MountedDisk md = getDiskMtd(id);
+        MBR m = getMBR(md.path);
+        /* Realizo el formateo de la partición */
+        if (isPrimPart(m, md.name) || isExtPart(m, md.name)){
+            Partition p = getPartByName(md.path, md.name);
+            if (p.part_start > 0){
+                if (fillSpaceDeleted(md.path, p.part_start, p.part_s)){
+                    /* Agrego las estructuras */
+                    if (fs == "ext2"){
+                        SuperBlock sb = RSBV();
+                        // addSuperBlock(md.path, p.part_start, )
+                    }else if (fs == "ext3"){
+                        
+                    }
+                }else{
+                    cout<< "ERROR: No se ha podido realizar la accion de formatear" <<endl;
+                }
+            }else{
+                cout<< "ERROR: Algo salío mal" <<endl;
+            }
+        }else if (isLogPart(md.path, md.name)){
+            EBR e = getLogPartByName(md.path, md.name);
+            if (e.part_start > 0){
+                if (fillSpaceDeleted(md.path, e.part_start, e.part_s)){
+                    /* Agrego las estructuras */
+                    if (fs == "ext2"){
+                        SuperBlock sb = RSBV();
+                        // addSuperBlock(md.path, p.part_start, )
+                    }else if (fs == "ext3"){
+                        
+                    }
+                }else{
+                    cout<< "ERROR: No se ha podido realizar la accion de formatear" <<endl;
+                }
+            }else{
+                cout<< "ERROR: Algo salío mal" <<endl;
+            }
+        }
+        
+    }else{
+        cout<< "ERROR: El ID de particion no existe" <<endl;
+    }
 }

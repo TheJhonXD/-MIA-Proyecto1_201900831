@@ -229,8 +229,7 @@ void createMBRReport(const string path, const string id){
                 cerr << e.what() << '\n';
             }
         }
-    }
-    else{
+    }else{
         cout << "ERROR: La particion no está montada" << endl;
     }
 }
