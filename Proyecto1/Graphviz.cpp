@@ -104,6 +104,8 @@ void getDiskGraph(const string path, const string id){
     }
 }
 
+/* --------------------------------------------------------------------------------- */
+
 //Retorna el maquetado de una fila de informacion que se le indique
 //Recibe como parametro el nombre del parametro y su valor
 string createRowMBRRpt(string param, string valor){
@@ -138,7 +140,7 @@ string getTableExtPartInfo(const string path){
             EBR actual = getEBR(path, start.part_next);
             graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
             while (actual.part_next != -1){
-                graph += createRowMBRRpt("part_status", to_string(actual.part_status));
+                graph += createRowMBRRpt("part_status", toString(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
                 graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
                 graph += createRowMBRRpt("part_start", to_string(actual.part_start));
@@ -148,7 +150,7 @@ string getTableExtPartInfo(const string path){
                 actual = getEBR(path, actual.part_next);
             }
             if (actual.part_s > 0){
-                graph += createRowMBRRpt("part_status", to_string(actual.part_status));
+                graph += createRowMBRRpt("part_status", toString(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
                 graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
                 graph += createRowMBRRpt("part_start", to_string(actual.part_start));
@@ -167,7 +169,7 @@ string getTablePartInfo(const string path, Partition p){
     // Partition p = getPartByName(path, name);
     if (p.part_s > 0){
         graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion</font></b></td></tr>";
-        graph += createRowMBRRpt("part_status", to_string(p.part_status));
+        graph += createRowMBRRpt("part_status", toString(p.part_status));
         graph += createRowMBRRpt("part_type", toString(p.part_type));
         graph += createRowMBRRpt("part_fit", toString(p.part_fit));
         graph += createRowMBRRpt("part_start", to_string(p.part_start));
@@ -211,6 +213,87 @@ void createMBRReport(const string path, const string id){
     string cmd;
     if (idExists(id)){
         if (createDir(getPath(path))){
+            string text = getMBRReport(getDiskMtd(id).path);
+            try{
+                FILE *myfile;
+                myfile = fopen(ruta.c_str(), "w+");
+                if (myfile == NULL){
+                    cout << "ERROR: El archivo dot no pudo ser creado" << endl;
+                    exit(1);
+                }
+                fwrite(text.c_str(), 1, text.size(), myfile);
+                fclose(myfile);
+                cmd = "dot -T" + getFileExt(path).substr(1) + " " + ruta + " -o " + getPath(ruta) + getFileName(path);
+                system(cmd.c_str());
+                cout<< "Grafo creado correctamente" <<endl;
+            }
+            catch (const exception &e){
+                cerr << e.what() << '\n';
+            }
+        }
+    }else{
+        cout << "ERROR: La particion no está montada" << endl;
+    }
+}
+
+/* ---------------------------------------------------------------- */
+
+string getTableSBInfo(const string &path, const string &name){
+    string graph = "";
+    MBR m = getMBR(path);
+    // MountedDisk md = getDisk
+    if (isPrimPart(m, name) || isExtPart(m, name)){
+        Partition p = getPartByName(path, name);
+        SuperBlock sb = getSuperBlock(path, p.part_start);
+        //?Aquí va el nombre del disco
+        graph += createRowMBRRpt("sb_nombre_hd", p.part_name);
+        //?Preguntar que es
+        graph += createRowMBRRpt("sb_arbol_virtual_count", "0");
+        //?Este tambien
+        graph += createRowMBRRpt("sb_detalle_directorio_count", "160");
+        graph += createRowMBRRpt("sb_inodos_count", to_string(sb.s_inodes_count));
+        graph += createRowMBRRpt("sb_bloques_count", to_string(sb.s_blocks_count));
+        //?Tambien preguntar
+        graph += createRowMBRRpt("sb_arbol_virtual_free", to_string(sb.s_blocks_count));
+        //?Este tambien, pero creo que se refiere al bitmap de bloques igual que el de los inodos
+        graph += createRowMBRRpt("sb_detalle_directorio_free", to_string(sb.s_blocks_count));
+        graph += createRowMBRRpt("sb_inodos_free", to_string(sb.s_free_inodes_count));
+        graph += createRowMBRRpt("sb_bloques_free", to_string(sb.s_free_blocks_count));
+        //?Tambien corroborar fechas
+        string fecha = to_string(sb.s_mtime.tm_year) + "-" + to_string(sb.s_mtime.tm_mon) + "-" + to_string(sb.s_mtime.tm_mday);
+        graph += createRowMBRRpt("sb_date_creacion", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
+        graph += createRowMBRRpt("sb_date_ultimo_montaje", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
+        graph += createRowMBRRpt("sb_montajes_count", to_string(sb.s_mnt_count));
+        graph += createRowMBRRpt("sb_montajes_count", to_string(sb.s_mnt_count));
+
+    }else if(isLogPart(path, name)){
+        EBR e = getLogPartByName(path, name);
+    }
+
+    return graph;
+}
+
+string getSBReport(const string &path, const string &name){
+    string graph = "";
+    string start = "digraph {\n\tnode [ shape=none fontname=Arial fontsize=12];\n\n\tn1 [ label = <\n";
+    string st_table = "\t\t<table border=\"2\" cellspacing=\"0\" cellpadding=\"10\">\n";
+    string end = "\t\t</table>\n\t> ];\n\n\t{rank=same n1};\n}";
+
+    graph += start;
+    graph += st_table;
+    graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">REPORTE DE SUPERBLOQUE</font></b></td></tr>\n";
+
+    return graph;
+}
+
+// Crea el archivo dot y la imagen del reporte del Super Bloque
+// Recibe como parametro la ruta donde se guardará la imagen y el id del disco
+void createSBReport(const string &path, const string &id){
+    string ruta = getPath(path) + getFileName(path) + ".dot";
+    string cmd;
+    if (idExists(id)){
+        if (createDir(getPath(path))){
+            //!No está terminado, revisar
             string text = getMBRReport(getDiskMtd(id).path);
             try{
                 FILE *myfile;

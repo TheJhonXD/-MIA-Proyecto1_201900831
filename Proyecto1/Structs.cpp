@@ -17,7 +17,7 @@ Time getTime() {
 //Reset Partition Variable
 //Limpia la variable Particion o inicializa en 0
 Partition RPV() {
-    return {-1, -1, -1, -1, -1, "-1"};
+    return {'0', -1, -1, -1, -1, "-1"};
 }
 
 //Reset EBR Variable
@@ -31,6 +31,27 @@ EBR REBRV() {
 SuperBlock RSBV() {
     Time tim = {-1, -1, -1, -1, -1, -1};
     return {-1, -1, -1, -1, -1, tim, tim, -1, 0xEF53, -1, -1, -1, -1, -1, -1, -1, -1};
+}
+
+//Reset Inode Variable
+//Limpia la variable Inodo o inicializa en 0
+Inodo RIV() {
+    Time tim = {-1, -1, -1, -1, -1, -1};
+    return {-1, -1, -1, tim, tim, tim, {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, 0, -1};
+}
+
+//Reset FolderBlock Variable
+//Limpia la variable FolderBlock o inicializa en 0
+FolderBlock RFBV() {
+    Content c = {"-1", -1}; 
+    return {c, c, c, c};
+}
+
+//Reset Journaling Variable
+//Limpia la variable Journaling o inicializa en 0
+Journaling RJV() {
+    Time tim = {-1, -1, -1, -1, -1, -1};
+    return {"-1", "-1", "-1", '0', tim};
 }
 
 //Añade el MBR a un disco especificado

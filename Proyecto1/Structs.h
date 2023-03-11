@@ -80,23 +80,23 @@ struct SuperBlock{
 
 struct Inodo{
     int i_uid;
-    int I_gid;
+    int i_gid;
     int i_s;
     Time i_atime;
     Time i_ctime;
     Time i_mtime;
-    int i_block;
+    int i_block[16];
     char i_type;
     int i_perm;
 };
 
-struct content{
+struct Content{
     char b_name[12];
     int b_inodo;
 };
 
 struct FolderBlock{
-    content b_content[4];
+    Content b_content[4];
 };
 
 struct FileBlock{
@@ -120,6 +120,9 @@ Time getTime();
 Partition RPV();
 EBR REBRV();
 SuperBlock RSBV();
+Inodo RIV();
+FolderBlock RFBV();
+Journaling RJV();
 void addMBR(const string path, MBR m);
 MBR getMBR(const string path);
 void readMBR(const string path);
@@ -136,5 +139,7 @@ void addFileBlock(const string &path, int start, FileBlock fb);
 FileBlock getFileBlock(const string path, int start);
 void addPointerBlock(const string &path, int start, PointerBlock pb);
 PointerBlock getPointerBlock(const string path, int start);
+int getMaxNumStructExt2(const int &tam);
+int getMaxNumStructExt3(const int &tam);
 
 #endif //PROYECTO1_STRUCTS_H

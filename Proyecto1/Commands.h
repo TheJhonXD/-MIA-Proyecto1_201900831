@@ -12,6 +12,7 @@ void FDISK(vector<string> params);
 void REP(vector<string> params);
 void MOUNT(vector<string> params);
 void UNMOUNT(vector<string> params);
+void MKFS(vector<string> params);
 
 
 #endif //PROYECTO1_COMMANDS_H

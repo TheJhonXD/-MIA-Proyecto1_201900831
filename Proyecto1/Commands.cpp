@@ -150,11 +150,9 @@ bool check_param_id(string &id){
 }
 
 bool check_param_t_mkfs(string &t){
-    if (t != "full" || t != "-1"){
-        cout<< "ERROR: \"" << t << "\" no es un valor valido" <<endl;
-        return false;
-    }
-    return true;
+    if (t == "full" || t == "-1") return true;
+    cout<< "ERROR: \"" << t << "\" no es un valor valido" <<endl;
+    return false;
 }
 
 bool check_param_fs(string &fs){
@@ -263,7 +261,7 @@ void FDISK(vector<string> params) {
             else if (PDM.u == "m")
                 PDM.s *= 1024*1024;
             //Creo una variable particion para guardar los datos, excepto el inicio de partcion y el estado
-            Partition p = {-1, *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s};
+            Partition p = {'0', *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s};
             strcpy(p.part_name, PDM.name.c_str());
             if (createPart(PDM.path, p)){ //Creo la particion y compruebo que todo ha salido correctamente
                 readMBR(PDM.path);
@@ -348,14 +346,16 @@ void MKFS(vector<string> params){
         }else if (toLowerCase(param[0]) == ">type"){
             PDM.t = toLowerCase(param[1]);
         }else if (toLowerCase(param[0]) == ">fs"){
-            PDM.t = toLowerCase(param[1]);
+            PDM.fs = toLowerCase(param[1]);
         }else{
             cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
         }
     }
 
     if (check_param_id(PDM.id) && check_param_t_mkfs(PDM.t) && check_param_fs(PDM.fs)){
-        //!Codigo aquí
+        if (makeFileSystem(PDM.id, PDM.fs)){
+            cout<< "Se formateo la particion satisfactoriamente" <<endl;
+        }
     }
     resetPDM();
 }
@@ -385,6 +385,8 @@ void REP(vector<string> params){
         createMBRReport(PDM.path, PDM.id);
     }else if (PDM.name == "disk" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
         getDiskGraph(PDM.path, PDM.id);
+    }else if (PDM.name == "sb" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
+        
     }
     resetPDM();
 }

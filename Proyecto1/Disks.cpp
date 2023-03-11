@@ -899,6 +899,18 @@ bool reducePartSize(const string path, const string name, int tam){
     return false;
 }
 
+void updatePart(MBR &m, Partition &p, const string &name){
+    if (m.mbr_partition_1.part_name == name){
+        m.mbr_partition_1 = p;
+    }else if (m.mbr_partition_2.part_name == name){
+        m.mbr_partition_2 = p;
+    }else if (m.mbr_partition_3.part_name == name){
+        m.mbr_partition_3 = p;
+    }else if (m.mbr_partition_4.part_name == name){
+        m.mbr_partition_4 = p;
+    }
+}
+
 //Number Partition Mounted Same Disk
 //Devuelve el numero de particiones montadas del mismo disco
 int numPartMtdSameDisk(const string path, const string name){
@@ -914,11 +926,37 @@ string getIdMtdDisk(const string path, const string name){
     return (lastNum + to_string(numPartMtdSameDisk(path, name) + 1) + getFileName(path));
 }
 
+/*------- Creados para graphviz ---------*/
+vector<MountedDisk> getDisksMounted(){
+    return mds;
+}
+
+MountedDisk getDiskMtd(const string id){
+    for (auto md : mds)
+        if (md.id == id) return md;
+    return {};
+}
+/* ------------------------------------- */
+
 bool mountDisk(const string path, const string name){
     if (fs::exists(path)){
         if (partExists(path, name)){
             MountedDisk md = {path, name, getIdMtdDisk(path, name)};
             mds.push_back(md);
+            MBR m = getMBR(path);
+            if (isPrimPart(m, name) || isExtPart(m, name)){
+                Partition p = getPartByName(path, name);
+                //?Nuevo
+                p.part_status = '1';
+                updatePart(m, p, name);
+                addMBR(path, m);
+            }else if (isLogPart(path, name)){
+                EBR e = getLogPartByName(path, name);
+                if (e.part_s > 0){
+                    e.part_status = '1';
+                    addEBR(path, e.part_start, e);
+                }
+            }
             cout<< "Disco montado correctamente" <<endl;
             return true;
         }else{
@@ -960,7 +998,22 @@ bool deleteID(const string id){
 bool unmountDisk(const string id){
     if (idExists(id)){
         if (deleteID(id)){
-            cout<< "ID eliminado satifactoriamente" <<endl;
+            MountedDisk md = getDiskMtd(id);
+            //?Nuevo
+            MBR m = getMBR(md.path);
+            if (isPrimPart(m, md.name) || isExtPart(m, md.name)){
+                Partition p = getPartByName(md.path, md.name);
+                p.part_status = '0';
+                updatePart(m, p, md.name);
+                addMBR(md.path, m);
+            }else if (isLogPart(md.path, md.name)){
+                EBR e = getLogPartByName(md.path, md.name);
+                if (e.part_s > 0){
+                    e.part_status = '0';
+                    addEBR(md.path, e.part_start, e);
+                }
+            }
+            cout<< "Disco desmontado satifactoriamente" <<endl;
             return true;
         }else{
             cout<< "ERROR: El ID no pudo ser eliminado" <<endl;
@@ -971,17 +1024,45 @@ bool unmountDisk(const string id){
     return false;
 }
 
-/*------- Creados para graphviz ---------*/
-vector<MountedDisk> getDisksMounted(){
-    return mds;
+bool addBmpInodeNBlock(const string &path, const int &start, const int &tam){
+    /* Agrego el bitmap de inodo y de bloque */
+    char bmi[tam];
+    char bmb[3*tam];
+                        
+    memset(bmi, 0, tam); //Limpio la variable
+    memset(bmb, 0, 3*tam); //Limpio la variable
+
+    try {
+        FILE *myfile;
+        myfile = fopen(path.c_str(), "rb+");
+        fseek(myfile, start, SEEK_SET);
+        fwrite(&bmi, sizeof(bmi), 1, myfile);
+        fwrite(&bmb, sizeof(bmb), 1, myfile);
+        fclose(myfile);
+        return true;
+    } catch(const exception &e) {
+        cerr << e.what() <<endl;
+    }
+    
+    return false;
 }
 
-MountedDisk getDiskMtd(const string id){
-    for (auto md : mds)
-        if (md.id == id) return md;
-    return {};
+bool rsvSpaceJournaling(const string &path, const int &start, const int &tam){
+    Journaling j = RJV();
+    try {
+        FILE *myfile;
+        myfile = fopen(path.c_str(), "rb+");
+        fseek(myfile, start, SEEK_SET);
+        for (int i=0; i<tam; i++){
+            fwrite(&j, sizeof(Journaling), 1, myfile);
+        }
+        fclose(myfile);
+        return true;
+    } catch(const exception &e) {
+        cerr << e.what() <<endl;
+    }
+    return false;
 }
-/* ------------------------------------- */
 
 bool makeFileSystem(const string &id, string fs){
     if (idExists(id)){
@@ -992,29 +1073,100 @@ bool makeFileSystem(const string &id, string fs){
             Partition p = getPartByName(md.path, md.name);
             if (p.part_start > 0){
                 if (fillSpaceDeleted(md.path, p.part_start, p.part_s)){
+                    SuperBlock sb = RSBV();
+                    sb.s_inode_s = sizeof(Inodo);
+                    sb.s_block_s = sizeof(FolderBlock);
                     /* Agrego las estructuras */
-                    if (fs == "ext2"){
-                        SuperBlock sb = RSBV();
-                        // addSuperBlock(md.path, p.part_start, )
-                    }else if (fs == "ext3"){
-                        
+                    if (fs == "2fs"){
+                        int num_struct = getMaxNumStructExt2(p.part_s);
+                        //Numero que identifica al sistema de archivos - EXT2
+                        sb.s_filesystem_type = 2;
+                        //Inicio del bitmap de inodos
+                        sb.s_bm_inode_start = sizeof(SuperBlock) + 1;
+                        //Inicio del bitmap de bloques
+                        sb.s_bm_block_start = sb.s_bm_inode_start + num_struct + 1;
+                        //Inicio de la tabla de inodos
+                        sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
+                        //Inicio de la tabla de bloques
+                        sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        //Añado el superbloque
+                        addSuperBlock(md.path, p.part_start, sb);
+                        //Añado el bitmap de inodos y de bloques
+                        addBmpInodeNBlock(md.path, (p.part_start + sizeof(SuperBlock)) + 1, num_struct);
+                        return true;
+                    }else if (fs == "3fs"){
+                        int num_struct = getMaxNumStructExt3(p.part_s);
+                        //Numero que identifica al sistema de archivos - EXT2
+                        sb.s_filesystem_type = 3;
+                        //Inicio del bitmap de inodos
+                        sb.s_bm_inode_start = sizeof(SuperBlock) + (sizeof(Journaling)*num_struct) + 1;
+                        //Inicio del bitmap de bloques
+                        sb.s_bm_block_start = sb.s_bm_inode_start + num_struct + 1;
+                        //Inicio de la tabla de inodos
+                        sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
+                        //Inicio de la tabla de bloques
+                        sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        //Añado el super bloque
+                        addSuperBlock(md.path, p.part_start, sb);
+                        /* cout<< "Numero maximo: " << num_struct <<endl;
+                        cout<< "Size SP: " << sizeof(SuperBlock) <<endl;
+                        cout << "Size I: " << sizeof(Inodo) <<endl;
+                        cout<< "Size FB: " << sizeof(FolderBlock) <<endl;
+                        cout<< "Size J: " << sizeof(Journaling) <<endl; */
+                        //Reservo el espacio para el Journaling
+                        rsvSpaceJournaling(md.path, (p.part_start + sizeof(SuperBlock) +1), num_struct);
+                        //Añado el bitmap de inodos y de bloques
+                        addBmpInodeNBlock(md.path, (p.part_start + sizeof(SuperBlock) + (num_struct*sizeof(Journaling)) + 1), num_struct);
+                        return true;
                     }
                 }else{
                     cout<< "ERROR: No se ha podido realizar la accion de formatear" <<endl;
                 }
             }else{
-                cout<< "ERROR: Algo salío mal" <<endl;
+                cout<< "ERROR: Algo salio mal" <<endl;
             }
         }else if (isLogPart(md.path, md.name)){
             EBR e = getLogPartByName(md.path, md.name);
             if (e.part_start > 0){
                 if (fillSpaceDeleted(md.path, e.part_start, e.part_s)){
                     /* Agrego las estructuras */
-                    if (fs == "ext2"){
-                        SuperBlock sb = RSBV();
-                        // addSuperBlock(md.path, p.part_start, )
-                    }else if (fs == "ext3"){
-                        
+                    SuperBlock sb = RSBV();
+                    if (fs == "2fs"){
+                        int num_struct = getMaxNumStructExt2(e.part_s);
+                        //Numero que identifica al sistema de archivos - EXT2
+                        sb.s_filesystem_type = 2;
+                        //Inicio del bitmap de inodos
+                        sb.s_bm_inode_start = sizeof(SuperBlock) + 1;
+                        //Inicio del bitmap de bloques
+                        sb.s_bm_block_start = sb.s_bm_inode_start + num_struct + 1;
+                        //Inicio de la tabla de inodos
+                        sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
+                        //Inicio de la tabla de bloques
+                        sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        //Añado el super bloque
+                        addSuperBlock(md.path, e.part_start, sb);
+                        //Añado el bitmap de inodos y de bloques
+                        addBmpInodeNBlock(md.path, (e.part_start + sizeof(SuperBlock)) + 1, num_struct);
+                        return true;
+                    }else if (fs == "3fs"){
+                        int num_struct = getMaxNumStructExt3(e.part_s);
+                        //Numero que identifica al sistema de archivos - EXT2
+                        sb.s_filesystem_type = 3;
+                        //Inicio del bitmap de inodos
+                        sb.s_bm_inode_start = sizeof(SuperBlock) + (sizeof(Journaling)*num_struct) + 1;
+                        //Inicio del bitmap de bloques
+                        sb.s_bm_block_start = sb.s_bm_inode_start + num_struct + 1;
+                        //Inicio de la tabla de inodos
+                        sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
+                        //Inicio de la tabla de bloques
+                        sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        //Añado el super bloque
+                        addSuperBlock(md.path, e.part_start, sb);
+                        //Reservo el espacio para el Journaling
+                        rsvSpaceJournaling(md.path, (e.part_start + sizeof(SuperBlock) +1), num_struct);
+                        //Añado el bitmap de inodos y de bloques
+                        addBmpInodeNBlock(md.path, (e.part_start + sizeof(SuperBlock) + (num_struct*sizeof(Journaling)) + 1), num_struct);
+                        return true;
                     }
                 }else{
                     cout<< "ERROR: No se ha podido realizar la accion de formatear" <<endl;
@@ -1027,4 +1179,5 @@ bool makeFileSystem(const string &id, string fs){
     }else{
         cout<< "ERROR: El ID de particion no existe" <<endl;
     }
+    return false;
 }
