@@ -578,6 +578,7 @@ bool createPart(string path, Partition &p){
                         return true;
                     }else{
                         cout<< "ERROR: No se pudo asignar la particion" <<endl;
+                        // readMBR(path);
                     }
                 }else{
                     cout<< "ERROR: Se exedió el numero de particiones permitidas" <<endl;

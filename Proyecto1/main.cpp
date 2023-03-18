@@ -50,8 +50,8 @@ void analyzer(string s) {
         cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "mkfs"){
         cout<< "»» " << s <<endl;
-        MKFS(cmds);
-        cout<< "-------------------------------------------------------------" <<endl;
+        // MKFS(cmds);
+        // cout<< "-------------------------------------------------------------" <<endl;
     }else if (toLowerCase(cmds[0]) == "login"){
         cout<< "»» " << s <<endl;
     }else if (toLowerCase(cmds[0]) == "logout"){

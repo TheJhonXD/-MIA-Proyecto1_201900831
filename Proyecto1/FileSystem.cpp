@@ -109,23 +109,45 @@ int getNewPosFolderBlock(const string &path, const string &name){
 FolderBlock getFBById(const string &path, const string &name, const int &idBlock){
     SuperBlock sp = getSuperBlock(path, getPartStart(path, name));
     FolderBlock fb;
+    int cont = 0;
     try {
         FILE *myfile;
         myfile = fopen(path.c_str(), "rb");
         fseek(myfile, sp.s_bm_block_start, SEEK_SET);
         for (int i=0; i<sp.s_blocks_count; i++){
-            fread(&fb, sizeof(FolderBlock), 1, myfile);
-            for (int j=0; j<sizeof(fb.b_content)/sizeof(FolderBlock); j++){
-                if (fb.b_content[j].b_inodo == idBlock){
-                    //!Codigo aquí
-                    //?Mejor hacer que busque por medio del inodo
-                }
+            if (cont == idBlock){
+                fread(&fb, sizeof(FolderBlock), 1, myfile);
+                return fb;
             }
+            cont++;
         }
         fclose(myfile);
     } catch(const exception &e) {
         cerr << e.what() <<endl;
     }
+    return RFBV();
+}
+
+FolderBlock getFileBlockById(const string &path, const string &name, const int &idBlock){
+    SuperBlock sp = getSuperBlock(path, getPartStart(path, name));
+    FolderBlock fb;
+    int cont = 0;
+    try {
+        FILE *myfile;
+        myfile = fopen(path.c_str(), "rb");
+        fseek(myfile, sp.s_bm_block_start, SEEK_SET);
+        for (int i=0; i<sp.s_blocks_count; i++){
+            if (cont == idBlock){
+                fread(&fb, sizeof(FolderBlock), 1, myfile);
+                return fb;
+            }
+            cont++;
+        }
+        fclose(myfile);
+    } catch(const exception &e) {
+        cerr << e.what() <<endl;
+    }
+    return RFBV();
 }
 
 bool createRoot(const string &id){
@@ -142,7 +164,7 @@ bool createRoot(const string &id){
     return false;
 }
 
-bool createUserFile(const string &id){
+/* bool createUserFile(const string &id){
 
-}
+} */
 

@@ -6,3 +6,11 @@
 2	1581	1677383390537722336	CMakeFiles/Proyecto1.dir/Disks.cpp.o	e00f83e43e839f7f
 3	488	1677359118875685307	CMakeFiles/Proyecto1.dir/Structs.cpp.o	57ba34c44e358146
 1	1358	1677383390313712346	CMakeFiles/Proyecto1.dir/main.cpp.o	5cc89512472be33e
+2	1018	1679120678018912862	CMakeFiles/Proyecto1.dir/Structs.cpp.o	57ba34c44e358146
+1	2550	1679120679550976570	CMakeFiles/Proyecto1.dir/Commands.cpp.o	26cc8f757bc2f934
+1	2818	1679120679818987711	CMakeFiles/Proyecto1.dir/main.cpp.o	5cc89512472be33e
+2	3013	1679120680014995858	CMakeFiles/Proyecto1.dir/Graphviz.cpp.o	6da0e0a579fe2855
+1019	3222	1679120680223004499	CMakeFiles/Proyecto1.dir/FileSystem.cpp.o	a9fcc57e6b57e2ba
+2	3402	1679120680403011977	CMakeFiles/Proyecto1.dir/Disks.cpp.o	e00f83e43e839f7f
+1	5474	1679120682467097674	CMakeFiles/Proyecto1.dir/Tools.cpp.o	12bab941d273b1e7
+5474	5758	1679120682751109458	Proyecto1	8231b3b47c52b6b6
