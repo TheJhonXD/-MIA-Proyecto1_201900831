@@ -383,7 +383,6 @@ vector<SpaceSize> ExtBlockSize(const string path){
         }
 
         //Segunda parte
-        if (actual.part_next == -1) v.push_back({actual.part_start, actual.part_s, 's', 'l'});
         while (actual.part_next != -1){
             endSpace = actual.part_start + actual.part_s;
             v.push_back({actual.part_start, actual.part_s, 's', 'l'});
@@ -393,7 +392,7 @@ vector<SpaceSize> ExtBlockSize(const string path){
             }
             actual = siguiente;
         }
-        
+        if (actual.part_s > 0) v.push_back({actual.part_start, actual.part_s, 's', 'l'});//!Cambié aquí
         //Tercera parte
         endSpace = actual.part_start + actual.part_s;
         if ((endSpace + 1) < ep.part_s){
@@ -431,7 +430,7 @@ bool bestFit(const string path, Partition &p){
     MBR m = getMBR(path); //Obtengo el mbr del disco
     vector<SpaceSize> ss = BlockSize(path, m); //Obtengo el bloque de tamaños
     int bestFitIdx = -1;
-    for (int i=0; i<sizeof(ss)/sizeof(SpaceSize); i++){
+    for (int i=0; i<ss.size(); i++){
         if ((ss[i].part_s >= p.part_s) && (ss[i].in_use != 's')){
             if (bestFitIdx == -1){
                 bestFitIdx = i;
@@ -456,7 +455,7 @@ bool worstFit(const string path, Partition &p){
     MBR m = getMBR(path); //Obtengo el mbr del disco
     vector<SpaceSize> ss = BlockSize(path, m); //Obtengo el bloque de tamaños
     int worstFitIdx = -1;
-    for (int i=0; i<sizeof(ss)/sizeof(SpaceSize); i++){
+    for (int i=0; i<ss.size(); i++){
         if ((ss[i].part_s >= p.part_s) && (ss[i].in_use != 's')){
             if (worstFitIdx == -1){
                 worstFitIdx = i;
@@ -499,7 +498,7 @@ bool extBestFit(const string path, EBR &e){
     vector<SpaceSize> ss = ExtBlockSize(path); //Obtengo el bloque de tamaños
     int bestFitIdx = -1;
     int prevSpace = -1;
-    for (int i=0; i<sizeof(ss)/sizeof(SpaceSize); i++){
+    for (int i=0; i<ss.size(); i++){
         if ((ss[i].part_s >= e.part_s) && (ss[i].in_use != 's')){
             if (bestFitIdx == -1){
                 bestFitIdx = i;
@@ -524,8 +523,8 @@ bool extWorstFit(const string path, EBR &e){
     vector<SpaceSize> ss = ExtBlockSize(path); //Obtengo el bloque de tamaños
     int worstFitIdx = -1;
     int prevSpace = -1;
-    int aux = sizeof(ss)/sizeof(SpaceSize);
-    for (int i=0; i<sizeof(ss)/sizeof(SpaceSize); i++){
+    
+    for (int i=0; i<ss.size(); i++){
         if ((ss[i].part_s >= e.part_s) && (ss[i].in_use != 's')){
             if (worstFitIdx == -1){
                 worstFitIdx = i;
@@ -603,10 +602,13 @@ bool createPart(string path, Partition &p){
                 }
             }else if (p.part_type == 'l'){
                 if (numExtPart(m) > 0){
-                    EBR e = {-1, p.part_fit, p.part_start, p.part_s, -1};
+                    EBR e = {'0', p.part_fit, p.part_start, p.part_s, -1};
                     strcpy(e.part_name, p.part_name);
                     if (chooseExtFit(path, p.part_fit, e)){
                         cout<< "Particion logica creada correctamente" <<endl;
+                        Partition ep = getExtPart(path);
+                        readEBRs(path, ep, p.part_name);
+                        cout<< "*--*" <<endl;
                     }else{
                         cout<< "ERROR: No se pudo asignar la particion logica" <<endl;
                     }

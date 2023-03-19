@@ -20,7 +20,7 @@ string repDiskTR(const string path, MBR m){
             if (sExt.in_use == 's')
                 contInUse++;
     }
-    int tamExt = sizeof(ssExt) / sizeof(SpaceSize);
+    int tamExt = ssExt.size();
 
     for (auto s : ss){
         int pct = getPercentage(s.part_s, m.mbr_tamano);
@@ -38,16 +38,15 @@ string repDiskTR(const string path, MBR m){
     }
     graph += "\t\t\t</tr>\n";
 
-    if (ep.part_s > 0){
+    if (ep.part_s > 0 && contInUse > 0){
         graph += "\t\t\t<tr>\n";
         for (auto sExt : ssExt){
             int pct = getPercentage(sExt.part_s, ep.part_s);
             if (sExt.in_use == 'n'){
-                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">Libre<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
-            }
-            else if (sExt.in_use == 's'){
-                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">EBR</td>\n";
-                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"12\">Logica<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
+                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"11\">Libre<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
+            }else if (sExt.in_use == 's'){
+                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"11\">EBR</td>\n";
+                graph += "\t\t\t\t<td colspan=\"1\" rowspan=\"11\">Logica<br/><font point-size=\"8\">" + to_string(pct) + "\% del disco</font></td>\n";
             }
         }
         graph += "\t\t\t</tr>\n";
@@ -138,8 +137,9 @@ string getTableExtPartInfo(const string path){
         EBR start = getEBR(path, ep.part_start);
         if (start.part_next > 0){
             EBR actual = getEBR(path, start.part_next);
-            graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
+            
             while (actual.part_next != -1){
+                graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
                 graph += createRowMBRRpt("part_status", toString(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
                 graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
@@ -150,6 +150,7 @@ string getTableExtPartInfo(const string path){
                 actual = getEBR(path, actual.part_next);
             }
             if (actual.part_s > 0){
+                graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"tomato\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">Particion Logica</font></b></td></tr>";
                 graph += createRowMBRRpt("part_status", toString(actual.part_status));
                 graph += createRowMBRRpt("part_next", to_string(actual.part_next));
                 graph += createRowMBRRpt("part_fit", toString(actual.part_fit));
@@ -176,7 +177,7 @@ string getTablePartInfo(const string path, Partition p){
         graph += createRowMBRRpt("part_size", to_string(p.part_s));
         graph += createRowMBRRpt("part_name", p.part_name);
     }
-    if (p.part_type = 'e'){
+    if (p.part_type == 'e'){
         graph += getTableExtPartInfo(path);
     }
 

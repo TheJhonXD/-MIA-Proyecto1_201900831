@@ -23,7 +23,7 @@ Partition RPV() {
 //Reset EBR Variable
 //Limpia la variable EBR o inicializa en 0
 EBR REBRV() {
-    return {-1, -1, -1, -1, -1, "-1"};
+    return {'0', -1, -1, -1, -1, "-1"};
 }
 
 //Reset SuperBlock Variable
@@ -152,6 +152,28 @@ EBR getEBRByName(const string path, Partition ep, const string &name){
         if (actual.part_name == name) return actual;
     }
     return REBRV(); //!aqui
+}
+
+void readEBRs(const string path, Partition ep, const string name){
+    EBR start = getEBR(path, ep.part_start);
+    if (start.part_next != -1){
+        EBR actual = getEBR(path, start.part_next);
+        while (actual.part_next != -1){
+            cout<< "Size: " << actual.part_s <<endl;
+            cout<< "Start: " << actual.part_start <<endl;
+            cout<< "Name: " << actual.part_name <<endl;
+            cout<< "Status: " << actual.part_status <<endl;
+            cout<< "Fit: " << actual.part_fit <<endl;
+            actual = getEBR(path, actual.part_next);
+        }
+        if (actual.part_name == name){
+            cout<< "Size: " << actual.part_s <<endl;
+            cout<< "Start: " << actual.part_start <<endl;
+            cout<< "Name: " << actual.part_name <<endl;
+            cout<< "Status: " << actual.part_status <<endl;
+            cout<< "Fit: " << actual.part_fit <<endl;
+        }
+    }
 }
 
 //Añade el Super bloque a una partición especifica

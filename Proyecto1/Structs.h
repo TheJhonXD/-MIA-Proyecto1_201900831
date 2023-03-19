@@ -129,6 +129,7 @@ void readMBR(const string path);
 void addEBR(const string path, int start, EBR e);
 EBR getEBR(const string path, int start);
 EBR getEBRByName(const string path, Partition ep, const string &name);
+void readEBRs(const string path, Partition ep, const string name);
 void addSuperBlock(const string &path, int start, SuperBlock sb);
 SuperBlock getSuperBlock(const string path, int start);
 void addInodo(const string &path, int start, Inodo i);

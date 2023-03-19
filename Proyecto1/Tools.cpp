@@ -134,5 +134,5 @@ bool createDir(string path){
 }
 
 int getPercentage(double size, double disk_size){
-    return ceil((size/disk_size) * 100);
+    return round((size/disk_size) * 100);
 }
