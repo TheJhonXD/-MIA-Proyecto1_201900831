@@ -239,42 +239,56 @@ void createMBRReport(const string path, const string id){
 
 /* ---------------------------------------------------------------- */
 
-string getTableSBInfo(const string &path, const string &name){
+string getTableSBInfo(const string &id){
     string graph = "";
-    MBR m = getMBR(path);
-    // MountedDisk md = getDisk
-    if (isPrimPart(m, name) || isExtPart(m, name)){
-        Partition p = getPartByName(path, name);
-        SuperBlock sb = getSuperBlock(path, p.part_start);
-        //?Aquí va el nombre del disco
-        graph += createRowMBRRpt("sb_nombre_hd", p.part_name);
-        //?Preguntar que es
-        graph += createRowMBRRpt("sb_arbol_virtual_count", "0");
-        //?Este tambien
-        graph += createRowMBRRpt("sb_detalle_directorio_count", "160");
-        graph += createRowMBRRpt("sb_inodos_count", to_string(sb.s_inodes_count));
-        graph += createRowMBRRpt("sb_bloques_count", to_string(sb.s_blocks_count));
-        //?Tambien preguntar
-        graph += createRowMBRRpt("sb_arbol_virtual_free", to_string(sb.s_blocks_count));
-        //?Este tambien, pero creo que se refiere al bitmap de bloques igual que el de los inodos
-        graph += createRowMBRRpt("sb_detalle_directorio_free", to_string(sb.s_blocks_count));
-        graph += createRowMBRRpt("sb_inodos_free", to_string(sb.s_free_inodes_count));
-        graph += createRowMBRRpt("sb_bloques_free", to_string(sb.s_free_blocks_count));
-        //?Tambien corroborar fechas
-        string fecha = to_string(sb.s_mtime.tm_year) + "-" + to_string(sb.s_mtime.tm_mon) + "-" + to_string(sb.s_mtime.tm_mday);
-        graph += createRowMBRRpt("sb_date_creacion", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
-        graph += createRowMBRRpt("sb_date_ultimo_montaje", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
-        graph += createRowMBRRpt("sb_montajes_count", to_string(sb.s_mnt_count));
-        graph += createRowMBRRpt("sb_montajes_count", to_string(sb.s_mnt_count));
+    MountedDisk md = getDiskMtd(id);
+    MBR m = getMBR(md.path);
+    SuperBlock sb = RSBV();
 
-    }else if(isLogPart(path, name)){
-        EBR e = getLogPartByName(path, name);
+    if (isPrimPart(m, md.name) || isExtPart(m, md.name)){
+        Partition p = getPartByName(md.path, md.name);
+        sb = getSuperBlock(md.path, p.part_start);
+    }else if (isLogPart(md.path, md.name)){
+        EBR e = getLogPartByName(md.path, md.name);
+        sb = getSuperBlock(md.path, e.part_start);
     }
+    graph += createRowMBRRpt("sb_nombre_hd", getFileName(md.path));
+    graph += createRowMBRRpt("sb_arbol_virtual_count", "0"); //!Numero de nodos creo
+    graph += createRowMBRRpt("sb_detalle_directorio_count", "160"); //!Numero de nodos creo
+    graph += createRowMBRRpt("sb_inodos_count", to_string(sb.s_inodes_count));
+    graph += createRowMBRRpt("sb_bloques_count", to_string(sb.s_blocks_count));
+    graph += createRowMBRRpt("sb_arbol_virtual_free", to_string(sb.s_blocks_count)); //!Nodos que no están siendo utilizados (si solo se creo el inodo pero no se está usando)
+    graph += createRowMBRRpt("sb_detalle_directorio_free", to_string(sb.s_blocks_count)); //!Este no sé
+    graph += createRowMBRRpt("sb_inodos_free", to_string(sb.s_free_inodes_count));
+    graph += createRowMBRRpt("sb_bloques_free", to_string(sb.s_free_blocks_count));
+    string fecha = to_string(sb.s_mtime.tm_year) + "-" + to_string(sb.s_mtime.tm_mon) + "-" + to_string(sb.s_mtime.tm_mday);
+    graph += createRowMBRRpt("sb_date_creacion", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
+    string fecha2 = to_string(sb.s_umtime.tm_year) + "-" + to_string(sb.s_umtime.tm_mon) + "-" + to_string(sb.s_umtime.tm_mday);
+    graph += createRowMBRRpt("sb_date_ultimo_montaje", fecha + " " + to_string(sb.s_mtime.tm_hour) + ":" + to_string(sb.s_mtime.tm_hour));
+    graph += createRowMBRRpt("sb_montajes_count", to_string(sb.s_mnt_count));
+    graph += createRowMBRRpt("sb_ap_bitmap_arbol_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_arbol_directorio", to_string(sb.s_mnt_count)); //!Numero de apuntadores de carpetas
+    graph += createRowMBRRpt("sb_ap_bitmap_detalle_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_detalle_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_bitmap_inodos", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_inodos", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_bitmap_bloques", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_bloques", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_ap_log", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_size_struct_arbol_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_size_struct_detalle_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_size_struct_inodo", to_string(sb.s_inode_s));
+    graph += createRowMBRRpt("sb_size_struct_bloque", to_string(sb.s_block_s));
+    graph += createRowMBRRpt("sb_first_free_bit_arbol_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_first_free_bit_detalle_directorio", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_first_free_bit_tabla_inodos", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_first_free_bit_bloques", to_string(getRandomNumber())); //!Numero aleatorio XD
+    graph += createRowMBRRpt("sb_magic_num", to_string(sb.s_magic));
 
     return graph;
 }
 
-string getSBReport(const string &path, const string &name){
+string getSBReport(const string &id){
     string graph = "";
     string start = "digraph {\n\tnode [ shape=none fontname=Arial fontsize=12];\n\n\tn1 [ label = <\n";
     string st_table = "\t\t<table border=\"2\" cellspacing=\"0\" cellpadding=\"10\">\n";
@@ -282,8 +296,9 @@ string getSBReport(const string &path, const string &name){
 
     graph += start;
     graph += st_table;
-    graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"slateblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">REPORTE DE SUPERBLOQUE</font></b></td></tr>\n";
-
+    graph += "\t\t\t<tr><td colspan=\"2\" bgcolor=\"royalblue\" border=\"1\" align=\"left\" width=\"500\" color=\"white\"><b><font point-size=\"16\" color=\"white\">REPORTE DE SUPERBLOQUE</font></b></td></tr>\n";
+    graph += getTableSBInfo(id);
+    graph += end;
     return graph;
 }
 
@@ -295,7 +310,7 @@ void createSBReport(const string &path, const string &id){
     if (idExists(id)){
         if (createDir(getPath(path))){
             //!No está terminado, revisar
-            string text = getMBRReport(getDiskMtd(id).path);
+            string text = getSBReport(id);
             try{
                 FILE *myfile;
                 myfile = fopen(ruta.c_str(), "w+");
@@ -311,6 +326,92 @@ void createSBReport(const string &path, const string &id){
             }
             catch (const exception &e){
                 cerr << e.what() << '\n';
+            }
+        }
+    }else{
+        cout << "ERROR: La particion no está montada" << endl;
+    }
+}
+
+// Crea el archivo dot y la imagen del reporte del Super Bloque
+// Recibe como parametro la ruta donde se guardará la imagen y el id del disco
+void createBmIReport(const string &path, const string &id){
+    string ruta = getPath(path) + getFileName(path) + ".dot";
+    string cmd;
+    if (idExists(id)){
+        if (createDir(getPath(path))){
+            // string text = getSBReport(id);
+            MountedDisk md = getDiskMtd(id);
+            SuperBlock sb = getSuperBlock(md.path, getPartStart(md.path, md.name));
+            try {
+                FILE *myfile;
+                // FILE *myfile2;
+                ofstream myfile2;
+                myfile2.open(path, ios_base::out);
+                myfile = fopen(md.path.c_str(), "rb");
+                // myfile2 = fopen(ruta.c_str(), "rb+");
+                fseek(myfile, sb.s_bm_inode_start, SEEK_SET);
+                int var;
+                int cont = 1;
+                for (int i=0; i<(sb.s_inodes_count); i++){
+                    if (cont == 21){
+                        myfile2<< "\n";
+                        // fwrite("\n", 1, 1, myfile2);
+                        cont = 1;
+                    }
+                    fread(&var, sizeof(int), 1, myfile);
+                    myfile2<< var;
+                    // fwrite(to_string(var).c_str(), 1, 1, myfile2);
+                    cont++;
+                }
+                fclose(myfile);
+                myfile2.close();
+                cout<< "Reporte del bitmap de inodos creado" <<endl;
+            } catch(const exception &e) {
+                cerr << e.what() <<endl;
+            }
+        }
+    }else{
+        cout << "ERROR: La particion no está montada" << endl;
+    }
+}
+
+// Crea el archivo dot y la imagen del reporte del Super Bloque
+// Recibe como parametro la ruta donde se guardará la imagen y el id del disco
+void createBmBlockReport(const string &path, const string &id){
+    string ruta = getPath(path) + getFileName(path) + ".dot";
+    string cmd;
+    if (idExists(id)){
+        if (createDir(getPath(path))){
+            // string text = getSBReport(id);
+            MountedDisk md = getDiskMtd(id);
+            SuperBlock sb = getSuperBlock(md.path, getPartStart(md.path, md.name));
+            try {
+                FILE *myfile;
+                // FILE *myfile2;
+                ofstream myfile2;
+                myfile2.open(path, ios_base::out);
+                myfile = fopen(md.path.c_str(), "rb");
+                // myfile2 = fopen(ruta.c_str(), "rb+");
+                fseek(myfile, sb.s_bm_block_start, SEEK_SET);
+                int var;
+                int cont = 1;
+                for (int i=0; i<(sb.s_blocks_count); i++){
+                    if (cont == 21){
+                        myfile2<< "\n";
+                        // fwrite("\n", 1, 1, myfile2);
+                        cont = 1;
+                    }
+                    fread(&var, sizeof(int), 1, myfile);
+                    myfile2<< var;
+                    // fwrite(to_string(var).c_str(), 1, 1, myfile2);
+                    cont++;
+                }
+                fclose(myfile);
+                myfile2.close();
+                cout<< "Reporte del bitmap de bloques creado" <<endl;
+            } catch(const exception &e) {
+                cerr << e.what() <<endl;
             }
         }
     }else{

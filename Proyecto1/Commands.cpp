@@ -264,7 +264,7 @@ void FDISK(vector<string> params) {
             Partition p = {'0', *PDM.t.c_str(), *PDM.f.c_str(), -1, PDM.s};
             strcpy(p.part_name, PDM.name.c_str());
             if (createPart(PDM.path, p)){ //Creo la particion y compruebo que todo ha salido correctamente
-                readMBR(PDM.path);
+                //! readMBR(PDM.path);
             } 
         }else{
             cout<< "ERROR: No se pudo realizar la accion" <<endl;
@@ -354,6 +354,7 @@ void MKFS(vector<string> params){
 
     if (check_param_id(PDM.id) && check_param_t_mkfs(PDM.t) && check_param_fs(PDM.fs)){
         if (makeFileSystem(PDM.id, PDM.fs)){
+            createRoot(PDM.id);
             cout<< "Se formateo la particion satisfactoriamente" <<endl;
         }
     }
@@ -380,13 +381,17 @@ void REP(vector<string> params){
             cout<< "ERROR: El parametro " << param[0] << " no es valido" <<endl;
         }
     }
-    //?Solo prueba
+    
     if (PDM.name == "mbr" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
         createMBRReport(PDM.path, PDM.id);
     }else if (PDM.name == "disk" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
         getDiskGraph(PDM.path, PDM.id);
     }else if (PDM.name == "sb" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
-        
+        createSBReport(PDM.path, PDM.id);
+    }else if (PDM.name == "bm_inode" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
+        createBmIReport(PDM.path, PDM.id);
+    }else if (PDM.name == "bm_block" && check_param_name_rep(PDM.name) && check_param_path(PDM.path) && check_param_id(PDM.id)){
+        createBmBlockReport(PDM.path, PDM.id);
     }
     resetPDM();
 }

@@ -607,7 +607,7 @@ bool createPart(string path, Partition &p){
                     if (chooseExtFit(path, p.part_fit, e)){
                         cout<< "Particion logica creada correctamente" <<endl;
                         Partition ep = getExtPart(path);
-                        readEBRs(path, ep, p.part_name);
+                        //! readEBRs(path, ep, p.part_name);
                         cout<< "*--*" <<endl;
                     }else{
                         cout<< "ERROR: No se pudo asignar la particion logica" <<endl;
@@ -754,11 +754,20 @@ int availSpacePart(MBR m, const string &name){
     int availSpace = -1;
 
     if (m.mbr_partition_1.part_name == name){
-        availSpace = m.mbr_partition_2.part_start - (m.mbr_partition_1.part_start + m.mbr_partition_1.part_s);
+        if (m.mbr_partition_2.part_s > 0)
+            availSpace = m.mbr_partition_2.part_start - (m.mbr_partition_1.part_start + m.mbr_partition_1.part_s);
+        else
+            availSpace = m.mbr_tamano - (m.mbr_partition_1.part_start + m.mbr_partition_1.part_s);
     }else if (m.mbr_partition_2.part_name == name){
-        availSpace = m.mbr_partition_3.part_start - (m.mbr_partition_2.part_start + m.mbr_partition_2.part_s);
+        if (m.mbr_partition_3.part_s > 0)
+            availSpace = m.mbr_partition_3.part_start - (m.mbr_partition_2.part_start + m.mbr_partition_2.part_s);
+        else
+            availSpace = m.mbr_tamano - (m.mbr_partition_2.part_start + m.mbr_partition_2.part_s);
     }else if (m.mbr_partition_3.part_name == name){
-        availSpace = m.mbr_partition_4.part_start - (m.mbr_partition_3.part_start + m.mbr_partition_3.part_s);
+        if (m.mbr_partition_4.part_s > 0)
+            availSpace = m.mbr_partition_4.part_start - (m.mbr_partition_3.part_start + m.mbr_partition_3.part_s);
+        else
+            availSpace = m.mbr_tamano - (m.mbr_partition_3.part_start + m.mbr_partition_3.part_s);
     }else if (m.mbr_partition_4.part_name == name){
         availSpace = m.mbr_tamano - (m.mbr_partition_4.part_start + m.mbr_partition_4.part_s);
     }
@@ -832,11 +841,15 @@ bool addVolToPart(const string path, const string name, int tam){
                     addMBR(path, m);
                     cout<< "Espacio de particion extendido" <<endl;
                     return true;
+                }else{
+                    cout<< "No se pudo extender el tamanio de la particion" <<endl;
                 }
             }else if (isLogPart(path, name)){
                 if (chooseLogPartToAdd(path, name, tam)){
                     cout<< "Espacio de particion logica exntendido" <<endl;
                     return true;
+                }else{
+                    cout<< "No se pudo extender el tamanio de la particion" <<endl;
                 }
             }
         }else{
@@ -851,22 +864,23 @@ bool addVolToPart(const string path, const string name, int tam){
 bool shrinkPartition(MBR &m, const string &name, int tam){
     if(m.mbr_partition_1.part_name == name){
         if (m.mbr_partition_1.part_s > abs(tam)){
-            m.mbr_partition_1.part_s = m.mbr_partition_1.part_s - tam;
+            // m.mbr_partition_1.part_s + tam; porque "tam" ya es negativo
+            m.mbr_partition_1.part_s = m.mbr_partition_1.part_s + tam;
             return true;
         }
     }else if(m.mbr_partition_2.part_name == name){
         if (m.mbr_partition_2.part_s > abs(tam)){
-            m.mbr_partition_2.part_s = m.mbr_partition_2.part_s - tam;
+            m.mbr_partition_2.part_s = m.mbr_partition_2.part_s + tam;
             return true;
         }
     }else if(m.mbr_partition_3.part_name == name){
         if (m.mbr_partition_3.part_s > abs(tam)){
-            m.mbr_partition_3.part_s = m.mbr_partition_3.part_s - tam;
+            m.mbr_partition_3.part_s = m.mbr_partition_3.part_s + tam;
             return true;
         }
     }else if(m.mbr_partition_4.part_name == name){
         if (m.mbr_partition_4.part_s > abs(tam)){
-            m.mbr_partition_4.part_s = m.mbr_partition_4.part_s - tam;
+            m.mbr_partition_4.part_s = m.mbr_partition_4.part_s + tam;
             return true;
         }
     }
@@ -882,6 +896,8 @@ bool reducePartSize(const string path, const string name, int tam){
                     addMBR(path, m);
                     cout<< "Espacio de particion reducido" <<endl;
                     return true;
+                }else{
+                    cout<< "No se pudo reducir el tamanio de la particion" <<endl;
                 }
             }else if (isLogPart(path, name)){
                 Partition ep = getExtPart(path);
@@ -891,6 +907,8 @@ bool reducePartSize(const string path, const string name, int tam){
                     addEBR(path, e.part_start, e);
                     cout<< "Espacio de particion logica reducido" <<endl;
                     return true;
+                }else{
+                    cout<< "No se pudo reducir el tamanio de la particion" <<endl;
                 }
             }
         }else{
@@ -937,7 +955,7 @@ vector<MountedDisk> getDisksMounted(){
 MountedDisk getDiskMtd(const string id){
     for (auto md : mds)
         if (md.id == id) return md;
-    return {};
+    return {"-1", "-1", "-1"};
 }
 /* ------------------------------------- */
 
@@ -1000,20 +1018,26 @@ bool deleteID(const string id){
 
 bool unmountDisk(const string id){
     if (idExists(id)){
+        MountedDisk md = getDiskMtd(id);
         if (deleteID(id)){
-            MountedDisk md = getDiskMtd(id);
             //?Nuevo
             MBR m = getMBR(md.path);
             if (isPrimPart(m, md.name) || isExtPart(m, md.name)){
                 Partition p = getPartByName(md.path, md.name);
-                p.part_status = '0';
-                updatePart(m, p, md.name);
-                addMBR(md.path, m);
+                if (p.part_s > 0){
+                    p.part_status = '0';
+                    updatePart(m, p, md.name);
+                    addMBR(md.path, m);
+                }else{
+                    cout<< "ERROR: La particion no existe" <<endl;
+                }
             }else if (isLogPart(md.path, md.name)){
                 EBR e = getLogPartByName(md.path, md.name);
                 if (e.part_s > 0){
                     e.part_status = '0';
                     addEBR(md.path, e.part_start, e);
+                }else{
+                    cout<< "ERROR: La particion no existe" <<endl;
                 }
             }
             cout<< "Disco desmontado satifactoriamente" <<endl;
@@ -1079,6 +1103,7 @@ bool makeFileSystem(const string &id, string fs){
                     SuperBlock sb = RSBV();
                     sb.s_inode_s = sizeof(Inodo);
                     sb.s_block_s = sizeof(FolderBlock);
+                    sb.s_mtime = getTime();
                     /* Agrego las estructuras */
                     if (fs == "2fs"){
                         int num_struct = getMaxNumStructExt2(p.part_s);
@@ -1092,6 +1117,8 @@ bool makeFileSystem(const string &id, string fs){
                         sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
                         //Inicio de la tabla de bloques
                         sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        sb.s_inodes_count = num_struct;
+                        sb.s_blocks_count = 3*num_struct;
                         //Añado el superbloque
                         addSuperBlock(md.path, p.part_start, sb);
                         //Añado el bitmap de inodos y de bloques
@@ -1109,6 +1136,8 @@ bool makeFileSystem(const string &id, string fs){
                         sb.s_inode_start = sb.s_bm_block_start + (3*num_struct) + 1;
                         //Inicio de la tabla de bloques
                         sb.s_block_start = sb.s_inode_start + (sizeof(Inodo)*num_struct);
+                        sb.s_inodes_count = num_struct;
+                        sb.s_blocks_count = 3*num_struct;
                         //Añado el super bloque
                         addSuperBlock(md.path, p.part_start, sb);
                         /* cout<< "Numero maximo: " << num_struct <<endl;
@@ -1134,6 +1163,9 @@ bool makeFileSystem(const string &id, string fs){
                 if (fillSpaceDeleted(md.path, e.part_start, e.part_s)){
                     /* Agrego las estructuras */
                     SuperBlock sb = RSBV();
+                    sb.s_inode_s = sizeof(Inodo);
+                    sb.s_block_s = sizeof(FolderBlock);
+                    sb.s_mtime = getTime();
                     if (fs == "2fs"){
                         int num_struct = getMaxNumStructExt2(e.part_s);
                         //Numero que identifica al sistema de archivos - EXT2
