@@ -40,12 +40,12 @@ fdisk >size=<tamaño> >path=<ruta> >name=<nombre> [>unit=<unidad>] [>type=<tipo>
 
 **Parámetros**:
 
-- `size`: (Obligatorio al crear) Tamaño de la partición a crear. Debe ser un número positivo mayor a cero.
-- `path`: (Obligatorio) Ruta del disco en el que se creará la partición. El archivo debe existir.
-- `name`: (Obligatorio) Nombre de la partición. No debe repetirse dentro de las particiones del mismo disco.
-- `unit`: (Opcional) Unidades para el tamaño de la partición. Valores posibles: `B` (bytes), `K` (Kilobytes), `M` (Megabytes). Por defecto, `K`.
-- `type`: (Opcional) Tipo de partición. Valores posibles: `P` (Primaria), `E` (Extendida), `L` (Lógica). Por defecto, `P`.
-- `fit`: (Opcional) Ajuste para la partición. Valores posibles: `BF` (Best Fit), `FF` (First Fit), `WF` (Worst Fit). Por defecto, `FF`.
+- `>size`: (Obligatorio al crear) Tamaño de la partición a crear. Debe ser un número positivo mayor a cero.
+- `>path`: (Obligatorio) Ruta del disco en el que se creará la partición. El archivo debe existir.
+- `>name`: (Obligatorio) Nombre de la partición. No debe repetirse dentro de las particiones del mismo disco.
+- `>unit`: (Opcional) Unidades para el tamaño de la partición. Valores posibles: `B` (bytes), `K` (Kilobytes), `M` (Megabytes). Por defecto, `K`.
+- `>type`: (Opcional) Tipo de partición. Valores posibles: `P` (Primaria), `E` (Extendida), `L` (Lógica). Por defecto, `P`.
+- `>fit`: (Opcional) Ajuste para la partición. Valores posibles: `BF` (Best Fit), `FF` (First Fit), `WF` (Worst Fit). Por defecto, `FF`.
 
 **Ejemplo**:
 
@@ -65,10 +65,10 @@ mkfile >path=<ruta> [>size=<tamaño>] [>cont=<contenido>] [>r]
 
 **Parámetros**:
 
-- `path`: (Obligatorio) Ruta del archivo a crear. Si incluye espacios en blanco, debe encerrarse entre comillas.
-- `size`: (Opcional) Tamaño del archivo en bytes. El contenido será números del 0 al 9 repetidos hasta alcanzar el tamaño especificado.
-- `cont`: (Opcional) Ruta de un archivo cuyo contenido se copiará en el nuevo archivo.
-- `r`: (Opcional) Crea las carpetas padres especificadas en la ruta si no existen. No recibe ningún valor adicional.
+- `>path`: (Obligatorio) Ruta del archivo a crear. Si incluye espacios en blanco, debe encerrarse entre comillas.
+- `>size`: (Opcional) Tamaño del archivo en bytes. El contenido será números del 0 al 9 repetidos hasta alcanzar el tamaño especificado.
+- `>cont`: (Opcional) Ruta de un archivo cuyo contenido se copiará en el nuevo archivo.
+- `>r`: (Opcional) Crea las carpetas padres especificadas en la ruta si no existen. No recibe ningún valor adicional.
 
 **Ejemplo**:
 
@@ -88,8 +88,8 @@ mkdir >path=<ruta> [>r]
 
 **Parámetros**:
 
-- `path`: (Obligatorio) Ruta de la carpeta a crear. Si incluye espacios en blanco, debe encerrarse entre comillas.
-- `r`: (Opcional) Crea las carpetas padres especificadas en la ruta si no existen. No recibe ningún valor adicional.
+- `>path`: (Obligatorio) Ruta de la carpeta a crear. Si incluye espacios en blanco, debe encerrarse entre comillas.
+- `>r`: (Opcional) Crea las carpetas padres especificadas en la ruta si no existen. No recibe ningún valor adicional.
 
 **Ejemplo**:
 
@@ -109,7 +109,7 @@ cat >fileN=<archivo1> [>fileN=<archivo2>] ...
 
 **Parámetros**:
 
-- `fileN`: (Obligatorio) Lista de archivos cuyos contenidos se mostrarán.
+- `>fileN`: (Obligatorio) Lista de archivos cuyos contenidos se mostrarán.
 
 **Ejemplo**:
 
@@ -129,9 +129,9 @@ chmod >path=<ruta> >ugo=<permisos> [>r]
 
 **Parámetros**:
 
-- `path`: (Obligatorio) Ruta del archivo o carpeta cuyos permisos se cambiarán.
-- `ugo`: (Obligatorio) Permisos que se asignarán. Formato: `U G O` (Usuario, Grupo, Otros), cada uno con valores de `0` a `7`.
-- `r`: (Opcional) Aplica los cambios recursivamente a todos los archivos y carpetas dentro de la ruta especificada.
+- `>path`: (Obligatorio) Ruta del archivo o carpeta cuyos permisos se cambiarán.
+- `>ugo`: (Obligatorio) Permisos que se asignarán. Formato: `U G O` (Usuario, Grupo, Otros), cada uno con valores de `0` a `7`.
+- `>r`: (Opcional) Aplica los cambios recursivamente a todos los archivos y carpetas dentro de la ruta especificada.
 
 **Ejemplo**:
 
@@ -161,10 +161,10 @@ rep >id=<id_partición> >path=<ruta_reporte> >name=<nombre_reporte> [>ruta=<ruta
 
 **Parámetros**:
 
-- `id`: (Obligatorio) ID de la partición sobre la que se generará el reporte.
-- `path`: (Obligatorio) Ruta donde se guardará el reporte.
-- `name`: (Obligatorio) Tipo de reporte a generar. Valores posibles: `mbr`, `disk`, `file`, `ls`.
-- `ruta`: (Opcional) Ruta del archivo o carpeta para los reportes `file` y `ls`.
+- `>id`: (Obligatorio) ID de la partición sobre la que se generará el reporte.
+- `>path`: (Obligatorio) Ruta donde se guardará el reporte.
+- `>name`: (Obligatorio) Tipo de reporte a generar. Valores posibles: `mbr`, `disk`, `file`, `ls`.
+- `>ruta`: (Opcional) Ruta del archivo o carpeta para los reportes `file` y `ls`.
 
 **Ejemplo**:
 
